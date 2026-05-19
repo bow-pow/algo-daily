@@ -1,0 +1,512 @@
+[
+  {
+    "id": 31,
+    "name": "Boyer-Moore Majority Vote",
+    "difficulty": "medium",
+    "category": "patterns",
+    "tagline": "Find an element appearing more than n/2 times — in O(1) extra space.",
+    "explanation": "Maintain a candidate and a counter. If the counter hits zero, replace the candidate. If the current element matches the candidate, increment; otherwise decrement. After one pass, the candidate is the majority element (if one exists). A second pass verifies.",
+    "intuition": "Imagine a room where every person is either Team A or Team B. Pair them off — one A and one B cancel each other out. Whoever's left has the majority.",
+    "code": "def majority_element(nums):\n    candidate, count = None, 0\n    for n in nums:\n        if count == 0:\n            candidate = n\n        count += 1 if n == candidate else -1\n    return candidate",
+    "complexity": {"time": "O(n)", "space": "O(1)"},
+    "use_case": "Detecting a dominant vote, election fraud detection, finding the most common element when one is known to dominate.",
+    "viz": "generic_concept",
+    "quiz": [
+      {"q": "Boyer-Moore Majority Vote uses how much extra space?", "options": ["O(n)", "O(log n)", "O(1)", "O(n²)"], "answer": 2},
+      {"q": "The algorithm requires the majority element to:", "options": ["Be sorted", "Appear more than n/2 times", "Be even", "Appear exactly n/2 times"], "answer": 1}
+    ]
+  },
+  {
+    "id": 32,
+    "name": "KMP — Knuth-Morris-Pratt",
+    "difficulty": "hard",
+    "category": "strings",
+    "tagline": "Find a pattern in a text without backtracking.",
+    "explanation": "KMP preprocesses the pattern to compute a 'failure table' — for each prefix, the length of the longest proper prefix that's also a suffix. When a mismatch occurs during matching, the table tells the algorithm how far to skip without rechecking already-matched characters. Match scan runs in linear time.",
+    "intuition": "While reading a book looking for a phrase, you don't restart from scratch on every wrong character. KMP remembers what it just read so it doesn't reread it.",
+    "code": "def kmp(text, pattern):\n    # Build failure table\n    fail = [0] * len(pattern)\n    k = 0\n    for i in range(1, len(pattern)):\n        while k > 0 and pattern[k] != pattern[i]:\n            k = fail[k - 1]\n        if pattern[k] == pattern[i]:\n            k += 1\n        fail[i] = k\n    # Match\n    j = 0\n    for i in range(len(text)):\n        while j > 0 and pattern[j] != text[i]:\n            j = fail[j - 1]\n        if pattern[j] == text[i]:\n            j += 1\n        if j == len(pattern):\n            return i - j + 1\n    return -1",
+    "complexity": {"time": "O(n + m)", "space": "O(m)"},
+    "use_case": "Substring search, plagiarism detection, DNA sequence matching, grep-style tools.",
+    "viz": "generic_concept",
+    "quiz": [
+      {"q": "KMP's time complexity for text length n and pattern length m is:", "options": ["O(n × m)", "O(n + m)", "O(n log m)", "O(n²)"], "answer": 1},
+      {"q": "What does KMP's failure table store?", "options": ["Hash values", "Longest proper prefix that's also a suffix", "Character frequencies", "Mismatch indices"], "answer": 1}
+    ]
+  },
+  {
+    "id": 33,
+    "name": "Rabin-Karp",
+    "difficulty": "hard",
+    "category": "strings",
+    "tagline": "Substring search via rolling hash.",
+    "explanation": "Compute a hash of the pattern, then slide a window over the text, computing the hash of each window incrementally (rolling hash). On a hash match, verify with a direct comparison to rule out collisions. Excellent for multi-pattern search.",
+    "intuition": "Don't compare every word in every paragraph — first compare fingerprints. If two fingerprints match, then check the words. Most paragraphs won't even need a real comparison.",
+    "code": "def rabin_karp(text, pattern):\n    n, m = len(text), len(pattern)\n    if m > n: return -1\n    base, mod = 256, 10**9 + 7\n    p_hash = t_hash = 0\n    h = pow(base, m - 1, mod)\n    for i in range(m):\n        p_hash = (p_hash * base + ord(pattern[i])) % mod\n        t_hash = (t_hash * base + ord(text[i])) % mod\n    for i in range(n - m + 1):\n        if p_hash == t_hash and text[i:i+m] == pattern:\n            return i\n        if i < n - m:\n            t_hash = ((t_hash - ord(text[i]) * h) * base + ord(text[i+m])) % mod\n            t_hash %= mod\n    return -1",
+    "complexity": {"time": "O(n + m) avg, O(n × m) worst", "space": "O(1)"},
+    "use_case": "Multi-pattern search, plagiarism detection, finding repeated substrings, distributed search.",
+    "viz": "generic_concept",
+    "quiz": [
+      {"q": "Rabin-Karp's worst-case time is O(n×m). When does it happen?", "options": ["Pattern is longer than text", "Many hash collisions", "Pattern has no repeats", "Text is sorted"], "answer": 1},
+      {"q": "The 'rolling' part of rolling hash means:", "options": ["The hash is randomized", "Each window's hash is computed from the previous in O(1)", "Hashes are computed in parallel", "Patterns are rotated"], "answer": 1}
+    ]
+  },
+  {
+    "id": 34,
+    "name": "Manacher's Algorithm",
+    "difficulty": "hard",
+    "category": "strings",
+    "tagline": "Longest palindromic substring in linear time.",
+    "explanation": "The naive approach to longest-palindrome is O(n²). Manacher's trick is to expand around centers but reuse symmetry: if a known palindrome extends past the current center, mirror its information into the unknown region. The result is O(n) total work.",
+    "intuition": "When measuring palindrome lengths along a string, the symmetry of an already-found palindrome tells you free information about the region you haven't visited yet.",
+    "code": "def longest_palindrome(s):\n    # Transform: 'abba' -> '^#a#b#b#a#$'\n    T = '^#' + '#'.join(s) + '#$'\n    n = len(T)\n    P = [0] * n\n    C = R = 0\n    for i in range(1, n - 1):\n        mirror = 2 * C - i\n        if i < R:\n            P[i] = min(R - i, P[mirror])\n        while T[i + 1 + P[i]] == T[i - 1 - P[i]]:\n            P[i] += 1\n        if i + P[i] > R:\n            C, R = i, i + P[i]\n    max_len = max(P); center = P.index(max_len)\n    start = (center - max_len) // 2\n    return s[start:start + max_len]",
+    "complexity": {"time": "O(n)", "space": "O(n)"},
+    "use_case": "Longest palindromic substring, palindromic factorization, bioinformatics.",
+    "viz": "generic_concept",
+    "quiz": [
+      {"q": "Manacher's algorithm runs in:", "options": ["O(n²)", "O(n log n)", "O(n)", "O(n × m)"], "answer": 2},
+      {"q": "What's the role of the '#' insertion?", "options": ["Encryption", "Unifying odd and even-length palindromes", "Hashing", "Padding for SIMD"], "answer": 1}
+    ]
+  },
+  {
+    "id": 35,
+    "name": "Z-Algorithm",
+    "difficulty": "hard",
+    "category": "strings",
+    "tagline": "For each position, length of the longest match with the prefix.",
+    "explanation": "The Z-array of a string s defines Z[i] as the length of the longest substring starting at i that matches a prefix of s. Computing it in O(n) involves maintaining a 'Z-box' — the rightmost matched region — and reusing it via symmetry.",
+    "intuition": "Like asking, at every position, 'how much of the start does this echo?' Useful for finding all occurrences of a pattern: concatenate pattern + separator + text, then look for Z values equal to pattern length.",
+    "code": "def z_array(s):\n    n = len(s)\n    z = [0] * n\n    z[0] = n\n    l = r = 0\n    for i in range(1, n):\n        if i < r:\n            z[i] = min(r - i, z[i - l])\n        while i + z[i] < n and s[z[i]] == s[i + z[i]]:\n            z[i] += 1\n        if i + z[i] > r:\n            l, r = i, i + z[i]\n    return z",
+    "complexity": {"time": "O(n)", "space": "O(n)"},
+    "use_case": "Pattern matching, finding all occurrences of a pattern, longest repeated substring problems.",
+    "viz": "generic_concept",
+    "quiz": [
+      {"q": "Z[i] for the Z-algorithm represents:", "options": ["The character at i", "The longest substring at i matching the prefix", "The number of i in the string", "The hash at i"], "answer": 1},
+      {"q": "Z-algorithm builds the Z-array in:", "options": ["O(n)", "O(n log n)", "O(n²)", "O(n × m)"], "answer": 0}
+    ]
+  },
+  {
+    "id": 36,
+    "name": "Segment Tree",
+    "difficulty": "hard",
+    "category": "data structures",
+    "tagline": "Range queries and point updates in O(log n).",
+    "explanation": "A segment tree is a balanced binary tree where each node stores an aggregate (sum, min, max, gcd, …) of a range. Querying a range walks O(log n) nodes; updating a single point walks O(log n) nodes. The structure handles dynamic data — unlike a prefix-sum array, which freezes once built.",
+    "intuition": "A management hierarchy: each manager knows the summary of their team. To ask about a span of teams, you walk up until one manager covers the span and ask them. Updating one employee means notifying just their chain of managers.",
+    "code": "class SegTree:\n    def __init__(self, n):\n        self.n = n\n        self.t = [0] * (4 * n)\n    def update(self, i, val, node=1, lo=0, hi=None):\n        if hi is None: hi = self.n - 1\n        if lo == hi:\n            self.t[node] = val; return\n        mid = (lo + hi) // 2\n        if i <= mid: self.update(i, val, 2*node, lo, mid)\n        else:        self.update(i, val, 2*node+1, mid+1, hi)\n        self.t[node] = self.t[2*node] + self.t[2*node+1]\n    def query(self, l, r, node=1, lo=0, hi=None):\n        if hi is None: hi = self.n - 1\n        if r < lo or hi < l: return 0\n        if l <= lo and hi <= r: return self.t[node]\n        mid = (lo + hi) // 2\n        return (self.query(l, r, 2*node, lo, mid) +\n                self.query(l, r, 2*node+1, mid+1, hi))",
+    "complexity": {"time": "O(log n) per query/update, O(n) build", "space": "O(n)"},
+    "use_case": "Range sum/min/max with point updates, range GCD, online algorithms, competitive programming staples.",
+    "viz": "generic_concept",
+    "quiz": [
+      {"q": "Segment tree's update operation is:", "options": ["O(1)", "O(log n)", "O(n)", "O(n log n)"], "answer": 1},
+      {"q": "Why not just use a prefix sum array?", "options": ["Slower queries", "Doesn't handle point updates efficiently", "Uses more memory", "More complex code"], "answer": 1}
+    ]
+  },
+  {
+    "id": 37,
+    "name": "Fenwick Tree (Binary Indexed Tree)",
+    "difficulty": "hard",
+    "category": "data structures",
+    "tagline": "Like a segment tree, half the code.",
+    "explanation": "A Fenwick tree (BIT) supports prefix-sum-style queries and point updates in O(log n) using clever bit manipulation. It's less general than a segment tree but more compact and often faster in practice for sum queries. Each index covers a range determined by its lowest set bit.",
+    "intuition": "Indices form an implicit forest where each index 'owns' a range of size equal to its lowest set bit. Walking up via i + (i & -i) climbs the tree; walking down via i - (i & -i) descends.",
+    "code": "class BIT:\n    def __init__(self, n):\n        self.n = n\n        self.t = [0] * (n + 1)\n    def update(self, i, delta):  # 1-indexed\n        while i <= self.n:\n            self.t[i] += delta\n            i += i & -i\n    def query(self, i):  # prefix sum [1..i]\n        s = 0\n        while i > 0:\n            s += self.t[i]\n            i -= i & -i\n        return s\n    def range_query(self, l, r):\n        return self.query(r) - self.query(l - 1)",
+    "complexity": {"time": "O(log n) per op", "space": "O(n)"},
+    "use_case": "Dynamic prefix sums, inversion counting, range frequency, competitive programming.",
+    "viz": "generic_concept",
+    "quiz": [
+      {"q": "Fenwick tree relies on what bit trick?", "options": ["XOR", "Lowest set bit (i & -i)", "Popcount", "Right shift"], "answer": 1},
+      {"q": "Compared to segment trees, Fenwick trees are:", "options": ["More general", "Less general but simpler and faster for sums", "Always faster", "Bigger"], "answer": 1}
+    ]
+  },
+  {
+    "id": 38,
+    "name": "Floyd-Warshall",
+    "difficulty": "hard",
+    "category": "graphs",
+    "tagline": "All-pairs shortest paths in O(V³).",
+    "explanation": "Floyd-Warshall computes shortest paths between every pair of vertices. It iteratively considers each vertex k as a potential intermediate: if going from i to j through k is shorter than the current best i→j, update. Three nested loops. Handles negative edges (but not negative cycles).",
+    "intuition": "For each pair of cities, ask: 'is the trip shorter if I go through Chicago?' Try every city as a possible layover. After trying all, you have every shortest distance.",
+    "code": "def floyd_warshall(graph, n):\n    # graph[i][j] = weight, INF if no edge\n    INF = float('inf')\n    dist = [row[:] for row in graph]\n    for k in range(n):\n        for i in range(n):\n            for j in range(n):\n                if dist[i][k] + dist[k][j] < dist[i][j]:\n                    dist[i][j] = dist[i][k] + dist[k][j]\n    return dist",
+    "complexity": {"time": "O(V³)", "space": "O(V²)"},
+    "use_case": "All-pairs shortest paths, transitive closure, finding negative cycles, small-graph routing.",
+    "viz": "generic_concept",
+    "quiz": [
+      {"q": "Floyd-Warshall's complexity is:", "options": ["O(V²)", "O(V³)", "O(V log V)", "O(VE)"], "answer": 1},
+      {"q": "Floyd-Warshall handles negative edges but not:", "options": ["Self-loops", "Cycles", "Negative cycles", "Disconnected components"], "answer": 2}
+    ]
+  },
+  {
+    "id": 39,
+    "name": "Bellman-Ford",
+    "difficulty": "hard",
+    "category": "graphs",
+    "tagline": "Shortest paths with negative edges; detects negative cycles.",
+    "explanation": "Bellman-Ford relaxes every edge V−1 times. After V−1 iterations, all shortest paths are settled (for a graph with no negative cycles). One more pass: if any distance still improves, a negative cycle exists. Slower than Dijkstra but handles negatives.",
+    "intuition": "Pessimistic Dijkstra: instead of trusting the closest unvisited node, just relax every edge over and over until nothing changes — that gives shortest paths even if some edges 'pay' you to cross them.",
+    "code": "def bellman_ford(edges, n, source):\n    INF = float('inf')\n    dist = [INF] * n\n    dist[source] = 0\n    for _ in range(n - 1):\n        for u, v, w in edges:\n            if dist[u] + w < dist[v]:\n                dist[v] = dist[u] + w\n    # Detect negative cycle\n    for u, v, w in edges:\n        if dist[u] + w < dist[v]:\n            return None  # negative cycle\n    return dist",
+    "complexity": {"time": "O(V × E)", "space": "O(V)"},
+    "use_case": "Graphs with negative weights, currency arbitrage detection, routing with penalties.",
+    "viz": "generic_concept",
+    "quiz": [
+      {"q": "Bellman-Ford's time complexity is:", "options": ["O(V + E)", "O(V × E)", "O(E log V)", "O(V³)"], "answer": 1},
+      {"q": "Bellman-Ford can detect:", "options": ["Cycles in general", "Negative cycles", "Bridges", "Articulation points"], "answer": 1}
+    ]
+  },
+  {
+    "id": 40,
+    "name": "A* Search",
+    "difficulty": "hard",
+    "category": "graphs",
+    "tagline": "Dijkstra with a heuristic — informed shortest path.",
+    "explanation": "A* uses f(n) = g(n) + h(n), where g is the cost so far and h is a heuristic estimate of the remaining cost. With an admissible (never-overestimating) heuristic, A* finds the optimal path while expanding far fewer nodes than Dijkstra.",
+    "intuition": "Like Dijkstra, but also looks at a map. When deciding which city to visit next, consider not just how cheap it was to get there, but also how close it is (as the crow flies) to the goal.",
+    "code": "import heapq\n\ndef a_star(graph, start, goal, h):\n    # h(node) = estimated cost from node to goal\n    pq = [(h(start), 0, start)]  # (f, g, node)\n    came_from = {}\n    g_score = {start: 0}\n    while pq:\n        f, g, node = heapq.heappop(pq)\n        if node == goal:\n            return reconstruct(came_from, node)\n        for nb, w in graph[node]:\n            tg = g + w\n            if tg < g_score.get(nb, float('inf')):\n                came_from[nb] = node\n                g_score[nb] = tg\n                heapq.heappush(pq, (tg + h(nb), tg, nb))\n    return None\n\ndef reconstruct(came, node):\n    path = [node]\n    while node in came:\n        node = came[node]\n        path.append(node)\n    return path[::-1]",
+    "complexity": {"time": "depends on heuristic, ≤ O(E)", "space": "O(V)"},
+    "use_case": "Pathfinding in games, maps and GPS routing, AI puzzle solving (15-puzzle, Rubik's cube).",
+    "viz": "generic_concept",
+    "quiz": [
+      {"q": "A* is optimal when the heuristic is:", "options": ["Random", "Admissible (never overestimates)", "Always zero", "Negative"], "answer": 1},
+      {"q": "If h(n) = 0 everywhere, A* degenerates into:", "options": ["DFS", "BFS", "Dijkstra", "Greedy best-first"], "answer": 2}
+    ]
+  },
+  {
+    "id": 41,
+    "name": "Tarjan's SCC Algorithm",
+    "difficulty": "hard",
+    "category": "graphs",
+    "tagline": "Find strongly connected components in one DFS pass.",
+    "explanation": "A Strongly Connected Component is a maximal set of nodes where every node can reach every other. Tarjan's algorithm finds all SCCs in linear time using DFS, a stack of currently visited nodes, and a 'lowlink' value tracking the earliest reachable ancestor.",
+    "intuition": "While DFS dives, each node tracks the oldest ancestor it can reach via back-edges. When you return to a node whose oldest reachable ancestor is itself, you've found the 'top' of a strongly connected blob — pop it off the stack.",
+    "code": "def tarjan_scc(graph, n):\n    index = [0]\n    indices = [-1] * n\n    lowlinks = [0] * n\n    on_stack = [False] * n\n    stack = []\n    sccs = []\n    def strongconnect(v):\n        indices[v] = lowlinks[v] = index[0]\n        index[0] += 1\n        stack.append(v); on_stack[v] = True\n        for w in graph[v]:\n            if indices[w] == -1:\n                strongconnect(w)\n                lowlinks[v] = min(lowlinks[v], lowlinks[w])\n            elif on_stack[w]:\n                lowlinks[v] = min(lowlinks[v], indices[w])\n        if lowlinks[v] == indices[v]:\n            scc = []\n            while True:\n                w = stack.pop(); on_stack[w] = False\n                scc.append(w)\n                if w == v: break\n            sccs.append(scc)\n    for v in range(n):\n        if indices[v] == -1:\n            strongconnect(v)\n    return sccs",
+    "complexity": {"time": "O(V + E)", "space": "O(V)"},
+    "use_case": "Detecting cycles in code dependencies, 2-SAT, condensing graphs into DAGs, deadlock analysis.",
+    "viz": "generic_concept",
+    "quiz": [
+      {"q": "An SCC is a maximal subgraph where:", "options": ["Every pair of nodes is connected by an edge", "Every node can reach every other node", "There are no cycles", "All edges have the same weight"], "answer": 1},
+      {"q": "Tarjan's algorithm runs in:", "options": ["O(V²)", "O(V + E)", "O(VE)", "O(V log V)"], "answer": 1}
+    ]
+  },
+  {
+    "id": 42,
+    "name": "Kruskal's MST",
+    "difficulty": "hard",
+    "category": "graphs",
+    "tagline": "Minimum spanning tree by sorting edges and merging with Union-Find.",
+    "explanation": "Kruskal's algorithm sorts all edges by weight, then walks them in order. For each edge, if its endpoints aren't already in the same component (checked via Union-Find), add it to the MST. Stop when V−1 edges are chosen.",
+    "intuition": "Build the cheapest road network by always picking the cheapest unbuilt road that connects two not-yet-connected towns. Skip any road whose endpoints are already linked.",
+    "code": "def kruskal(n, edges):\n    # edges: list of (weight, u, v), n vertices\n    edges.sort()\n    parent = list(range(n))\n    def find(x):\n        while parent[x] != x:\n            parent[x] = parent[parent[x]]\n            x = parent[x]\n        return x\n    mst, total = [], 0\n    for w, u, v in edges:\n        ru, rv = find(u), find(v)\n        if ru != rv:\n            parent[ru] = rv\n            mst.append((u, v, w))\n            total += w\n    return mst, total",
+    "complexity": {"time": "O(E log E)", "space": "O(V)"},
+    "use_case": "Network design (cabling, roads, water), clustering, approximate solutions to TSP.",
+    "viz": "generic_concept",
+    "quiz": [
+      {"q": "Kruskal's MST relies critically on:", "options": ["Heaps", "Union-Find", "DFS", "BFS"], "answer": 1},
+      {"q": "Kruskal's time complexity is dominated by:", "options": ["The DFS", "Sorting the edges", "Union-Find operations", "Building the graph"], "answer": 1}
+    ]
+  },
+  {
+    "id": 43,
+    "name": "Prim's MST",
+    "difficulty": "hard",
+    "category": "graphs",
+    "tagline": "Minimum spanning tree by growing from a starting node.",
+    "explanation": "Prim's grows the MST one vertex at a time. Start anywhere; repeatedly add the cheapest edge that connects the current tree to a non-tree vertex. Use a min-heap of candidate edges for efficient picks.",
+    "intuition": "Build the road network outward from your house: at each step, add the shortest unbuilt road connecting the current network to any house that isn't yet on it.",
+    "code": "import heapq\n\ndef prim(graph, start, n):\n    # graph[u] = [(v, w), ...]\n    visited = {start}\n    pq = [(w, start, v) for v, w in graph[start]]\n    heapq.heapify(pq)\n    mst, total = [], 0\n    while pq and len(visited) < n:\n        w, u, v = heapq.heappop(pq)\n        if v in visited: continue\n        visited.add(v); mst.append((u, v, w)); total += w\n        for nb, nw in graph[v]:\n            if nb not in visited:\n                heapq.heappush(pq, (nw, v, nb))\n    return mst, total",
+    "complexity": {"time": "O(E log V) with binary heap", "space": "O(V + E)"},
+    "use_case": "Same as Kruskal — networks, clustering. Prim is often faster on dense graphs.",
+    "viz": "generic_concept",
+    "quiz": [
+      {"q": "Prim's algorithm grows the MST:", "options": ["From the cheapest edge", "From a starting vertex outward", "From multiple components", "Randomly"], "answer": 1},
+      {"q": "Prim's vs Kruskal's: on dense graphs, Prim's is usually:", "options": ["Slower", "Faster", "Same speed", "Incorrect"], "answer": 1}
+    ]
+  },
+  {
+    "id": 44,
+    "name": "Ford-Fulkerson Max Flow",
+    "difficulty": "hard",
+    "category": "graphs",
+    "tagline": "Maximum flow from source to sink via augmenting paths.",
+    "explanation": "Model each edge as a pipe with capacity. Repeatedly find a path from source to sink with available capacity (BFS gives the Edmonds-Karp variant, O(VE²)). Push the bottleneck flow through, decrement forward capacities, increment reverse capacities (for cancellation). Repeat until no augmenting path exists.",
+    "intuition": "Water from a reservoir to a city through a network of pipes. Find any path that can carry water; send as much as the narrowest pipe allows; mark the path used. Repeat. When no more paths, you've found the maximum throughput.",
+    "code": "from collections import deque\n\ndef edmonds_karp(cap, source, sink, n):\n    # cap[u][v] = capacity\n    flow = 0\n    while True:\n        parent = [-1] * n; parent[source] = source\n        q = deque([source])\n        while q and parent[sink] == -1:\n            u = q.popleft()\n            for v in range(n):\n                if parent[v] == -1 and cap[u][v] > 0:\n                    parent[v] = u; q.append(v)\n        if parent[sink] == -1: break\n        # bottleneck\n        bf = float('inf'); v = sink\n        while v != source:\n            bf = min(bf, cap[parent[v]][v]); v = parent[v]\n        v = sink\n        while v != source:\n            cap[parent[v]][v] -= bf\n            cap[v][parent[v]] += bf\n            v = parent[v]\n        flow += bf\n    return flow",
+    "complexity": {"time": "O(VE²) for Edmonds-Karp", "space": "O(V²)"},
+    "use_case": "Bipartite matching, network reliability, image segmentation, sports tournament outcomes.",
+    "viz": "generic_concept",
+    "quiz": [
+      {"q": "Why do max-flow algorithms maintain reverse edges?", "options": ["For undirected graphs", "To allow flow cancellation", "For BFS", "For sorting"], "answer": 1},
+      {"q": "Edmonds-Karp uses what to find augmenting paths?", "options": ["DFS", "BFS", "Dijkstra", "Random walks"], "answer": 1}
+    ]
+  },
+  {
+    "id": 45,
+    "name": "Bipartite Matching (Hopcroft-Karp)",
+    "difficulty": "hard",
+    "category": "graphs",
+    "tagline": "Maximum matching in a bipartite graph.",
+    "explanation": "Given two sets U and V with edges only between them, find the largest set of edges where no two share a vertex. Hopcroft-Karp finds shortest augmenting paths in layers via BFS, then augments multiple in one DFS pass. Runs in O(E × √V).",
+    "intuition": "Pair up job seekers with jobs, where each candidate is willing to take only some jobs. Match as many as possible. Augmenting paths swap rejections into acceptances.",
+    "code": "from collections import deque\n\ndef hopcroft_karp(adj, U, V):\n    INF = float('inf')\n    pair_u = {u: None for u in U}\n    pair_v = {v: None for v in V}\n    dist = {}\n    def bfs():\n        q = deque()\n        for u in U:\n            if pair_u[u] is None: dist[u] = 0; q.append(u)\n            else: dist[u] = INF\n        found = False\n        while q:\n            u = q.popleft()\n            for v in adj[u]:\n                pair = pair_v[v]\n                if pair is None: found = True\n                elif dist.get(pair, INF) == INF:\n                    dist[pair] = dist[u] + 1; q.append(pair)\n        return found\n    def dfs(u):\n        for v in adj[u]:\n            pair = pair_v[v]\n            if pair is None or (dist.get(pair, INF) == dist[u] + 1 and dfs(pair)):\n                pair_u[u] = v; pair_v[v] = u; return True\n        dist[u] = INF\n        return False\n    matching = 0\n    while bfs():\n        for u in U:\n            if pair_u[u] is None and dfs(u):\n                matching += 1\n    return matching",
+    "complexity": {"time": "O(E × √V)", "space": "O(V + E)"},
+    "use_case": "Job assignment, online dating matching, sports scheduling, optimal task allocation.",
+    "viz": "generic_concept",
+    "quiz": [
+      {"q": "Bipartite matching means edges go:", "options": ["In a cycle", "Only between two distinct sets U and V", "Only within one set", "Are weighted"], "answer": 1},
+      {"q": "Hopcroft-Karp improves on the simple O(VE) by:", "options": ["Caching", "Finding multiple shortest augmenting paths per phase", "Parallelism", "Memoization"], "answer": 1}
+    ]
+  },
+  {
+    "id": 46,
+    "name": "Convex Hull (Graham Scan)",
+    "difficulty": "hard",
+    "category": "geometry",
+    "tagline": "Smallest convex polygon enclosing a point set.",
+    "explanation": "Sort points by polar angle around the bottom-most point. Walk through them, maintaining a stack of hull candidates. At each new point, pop any stack-top that would make a non-left turn — keeping the hull convex. The remaining stack is the hull.",
+    "intuition": "Imagine a rubber band stretched around a board of nails. Released, it snaps to the outermost nails — that outline is the convex hull.",
+    "code": "def convex_hull(points):\n    points = sorted(set(points))\n    if len(points) <= 1: return points\n    def cross(O, A, B):\n        return (A[0]-O[0])*(B[1]-O[1]) - (A[1]-O[1])*(B[0]-O[0])\n    lower = []\n    for p in points:\n        while len(lower) >= 2 and cross(lower[-2], lower[-1], p) <= 0:\n            lower.pop()\n        lower.append(p)\n    upper = []\n    for p in reversed(points):\n        while len(upper) >= 2 and cross(upper[-2], upper[-1], p) <= 0:\n            upper.pop()\n        upper.append(p)\n    return lower[:-1] + upper[:-1]",
+    "complexity": {"time": "O(n log n)", "space": "O(n)"},
+    "use_case": "Collision detection, computer graphics, motion planning, statistics outlier visualization.",
+    "viz": "generic_concept",
+    "quiz": [
+      {"q": "Convex hull time is dominated by:", "options": ["Cross products", "Sorting the points", "Stack operations", "Distance calculations"], "answer": 1},
+      {"q": "The 'cross product' check determines:", "options": ["Distance", "Whether three points make a left, right, or straight turn", "Hash collisions", "Convex angle measurement"], "answer": 1}
+    ]
+  },
+  {
+    "id": 47,
+    "name": "Reservoir Sampling",
+    "difficulty": "medium",
+    "category": "patterns",
+    "tagline": "Pick k uniform-random items from a stream of unknown size.",
+    "explanation": "You can't fit the stream in memory and don't know its length. Algorithm R: keep the first k. For each subsequent item at position i (1-indexed, starting after k), replace a random slot of the reservoir with probability k/i. Every item ends with equal probability k/n of being kept.",
+    "intuition": "Imagine the stream is a parade. You can hold k flowers from passing floats. When a new float comes, sometimes you swap one of your held flowers for a new one. The math works out so every float in the parade has the same chance of being in your hand at the end.",
+    "code": "import random\n\ndef reservoir_sample(stream, k):\n    reservoir = []\n    for i, item in enumerate(stream):\n        if i < k:\n            reservoir.append(item)\n        else:\n            j = random.randint(0, i)\n            if j < k:\n                reservoir[j] = item\n    return reservoir",
+    "complexity": {"time": "O(n)", "space": "O(k)"},
+    "use_case": "Sampling tweets from a firehose, A/B test selection, picking random log lines, big-data sampling.",
+    "viz": "generic_concept",
+    "quiz": [
+      {"q": "Reservoir sampling lets you pick k items from a stream when:", "options": ["The stream is sorted", "You don't know the total length in advance", "All items have weights", "Items repeat"], "answer": 1},
+      {"q": "Each item in a stream of length n is kept with probability:", "options": ["1/n", "k/n", "1/k", "k/(k+1)"], "answer": 1}
+    ]
+  },
+  {
+    "id": 48,
+    "name": "Quickselect",
+    "difficulty": "medium",
+    "category": "sorting",
+    "tagline": "Find the kth smallest element without fully sorting.",
+    "explanation": "Like quicksort, but recurse only into the partition that contains the target rank. Average O(n); worst O(n²) with bad pivots — but median-of-medians guarantees O(n) worst case. Used inside many 'find the top k' routines.",
+    "intuition": "If you only want to know who's 5th tallest in a room, you don't need to perfectly sort everyone — just keep partitioning around heights until the 5th rank is settled.",
+    "code": "import random\n\ndef quickselect(arr, k):\n    arr = list(arr)\n    def partition(lo, hi):\n        p = random.randint(lo, hi)\n        arr[p], arr[hi] = arr[hi], arr[p]\n        pivot = arr[hi]; store = lo\n        for i in range(lo, hi):\n            if arr[i] < pivot:\n                arr[i], arr[store] = arr[store], arr[i]; store += 1\n        arr[store], arr[hi] = arr[hi], arr[store]\n        return store\n    lo, hi = 0, len(arr) - 1\n    while lo <= hi:\n        p = partition(lo, hi)\n        if p == k: return arr[p]\n        elif p < k: lo = p + 1\n        else:       hi = p - 1\n    return None",
+    "complexity": {"time": "O(n) avg, O(n²) worst", "space": "O(1) iterative"},
+    "use_case": "Finding kth smallest/largest, median computation, top-k recommendations.",
+    "viz": "generic_concept",
+    "quiz": [
+      {"q": "Quickselect's average complexity is:", "options": ["O(log n)", "O(n)", "O(n log n)", "O(n²)"], "answer": 1},
+      {"q": "Quickselect differs from quicksort in:", "options": ["Pivot strategy", "Only recursing into one partition", "Stability", "It doesn't"], "answer": 1}
+    ]
+  },
+  {
+    "id": 49,
+    "name": "Suffix Array",
+    "difficulty": "hard",
+    "category": "strings",
+    "tagline": "Sorted array of all suffix start positions of a string.",
+    "explanation": "The suffix array of a string is an array of integers — the starting positions of all suffixes, sorted lexicographically. Once built (in O(n log n) or even O(n)), it answers substring-search, longest-repeated-substring, and many other queries in O(log n) per query. A lighter alternative to suffix trees.",
+    "intuition": "Imagine a phone book of every possible ending of your string. Alphabetized. Want to find 'cat'? Binary-search the phone book.",
+    "code": "def suffix_array(s):\n    # Simple O(n^2 log n) construction; production uses O(n log n) algorithms\n    n = len(s)\n    return sorted(range(n), key=lambda i: s[i:])\n\n# Usage:\nsa = suffix_array('banana$')\n# Binary search the suffix array to find substrings.",
+    "complexity": {"time": "O(n log n) with good algorithm; O(log n) per query", "space": "O(n)"},
+    "use_case": "Full-text indexing, bioinformatics (genome substring queries), text compression (BWT).",
+    "viz": "generic_concept",
+    "quiz": [
+      {"q": "A suffix array stores:", "options": ["All suffixes", "Sorted positions of suffix starts", "Suffix hashes", "Suffix lengths"], "answer": 1},
+      {"q": "Suffix arrays are an alternative to:", "options": ["Hash maps", "Suffix trees", "Tries", "BWT"], "answer": 1}
+    ]
+  },
+  {
+    "id": 50,
+    "name": "Aho-Corasick",
+    "difficulty": "hard",
+    "category": "strings",
+    "tagline": "Match many patterns against one text simultaneously.",
+    "explanation": "Build a trie from all patterns. Add 'failure links' — when matching fails at a node, the link points to the longest suffix that's also a prefix of some pattern (think KMP, generalized to a trie). Process the text once; report every pattern match. Time: O(text + total pattern length + matches).",
+    "intuition": "KMP for many patterns. The failure links let you 'fall back' efficiently across the trie when characters mismatch, never restarting from the root unnecessarily.",
+    "code": "from collections import deque\n\ndef aho_corasick(patterns):\n    # Build goto + fail\n    goto = [{}]; fail = [0]; out = [[]]\n    for p_idx, pat in enumerate(patterns):\n        node = 0\n        for c in pat:\n            if c not in goto[node]:\n                goto.append({}); fail.append(0); out.append([])\n                goto[node][c] = len(goto) - 1\n            node = goto[node][c]\n        out[node].append(p_idx)\n    # BFS for fail links\n    q = deque()\n    for c, nxt in goto[0].items(): fail[nxt] = 0; q.append(nxt)\n    while q:\n        u = q.popleft()\n        for c, v in goto[u].items():\n            q.append(v)\n            f = fail[u]\n            while f and c not in goto[f]: f = fail[f]\n            fail[v] = goto[f].get(c, 0) if goto[f].get(c, 0) != v else 0\n            out[v] += out[fail[v]]\n    return goto, fail, out",
+    "complexity": {"time": "O(n + m + matches)", "space": "O(m)"},
+    "use_case": "Virus signature scanning, ad blockers, intrusion detection, multi-keyword search, spam filtering.",
+    "viz": "generic_concept",
+    "quiz": [
+      {"q": "Aho-Corasick is essentially:", "options": ["KMP for one pattern", "KMP for many patterns at once via a trie", "BFS on strings", "Hashing-based search"], "answer": 1},
+      {"q": "Total search time for n text and m total pattern length is:", "options": ["O(nm)", "O(n + m + matches)", "O(n log m)", "O(n × √m)"], "answer": 1}
+    ]
+  },
+  {
+    "id": 51,
+    "name": "Tortoise and Hare — Find Cycle Start",
+    "difficulty": "hard",
+    "category": "patterns",
+    "tagline": "Where exactly does the loop begin?",
+    "explanation": "After Floyd's cycle detection finds a meeting point inside a loop, finding *where the loop starts* is a clean trick: reset one pointer to the head and move both pointers at the same speed. They meet at the cycle's entrance. Proof is a nice exercise in modular arithmetic.",
+    "intuition": "Once two runners meet inside a cyclic track, reset one to the starting line. Walk both at the same pace. They'll meet exactly where the loop joins the entry path.",
+    "code": "def find_cycle_start(head):\n    slow = fast = head\n    while fast and fast.next:\n        slow = slow.next\n        fast = fast.next.next\n        if slow is fast:\n            slow = head\n            while slow is not fast:\n                slow = slow.next\n                fast = fast.next\n            return slow\n    return None  # no cycle",
+    "complexity": {"time": "O(n)", "space": "O(1)"},
+    "use_case": "Finding cycle start in linked lists, duplicate finding when array indices form a graph, happy number convergence point.",
+    "viz": "generic_concept",
+    "quiz": [
+      {"q": "After finding a meeting point in a cycle, to find the cycle start:", "options": ["Sort the list", "Reset one pointer to head, walk both at the same speed", "Use a hash set", "Double the fast pointer's speed"], "answer": 1},
+      {"q": "Space complexity of this technique is:", "options": ["O(n)", "O(log n)", "O(1)", "O(√n)"], "answer": 2}
+    ]
+  },
+  {
+    "id": 52,
+    "name": "LRU Cache",
+    "difficulty": "medium",
+    "category": "data structures",
+    "tagline": "Get and put in O(1), eviction by least-recently-used.",
+    "explanation": "Combine a hash map (for O(1) key lookup) with a doubly linked list (for O(1) move-to-front and tail-eviction). On access, move the node to the head. On put-with-overflow, drop the tail. Python's collections.OrderedDict gives you this for free.",
+    "intuition": "A bookshelf of bestsellers: every time someone reads a book, it goes to the very top. The book at the bottom — least-recently-read — is removed when the shelf is full and a new book comes in.",
+    "code": "from collections import OrderedDict\n\nclass LRUCache:\n    def __init__(self, capacity):\n        self.cap = capacity\n        self.cache = OrderedDict()\n    def get(self, key):\n        if key not in self.cache: return -1\n        self.cache.move_to_end(key)\n        return self.cache[key]\n    def put(self, key, value):\n        if key in self.cache:\n            self.cache.move_to_end(key)\n        self.cache[key] = value\n        if len(self.cache) > self.cap:\n            self.cache.popitem(last=False)",
+    "complexity": {"time": "O(1) per op", "space": "O(capacity)"},
+    "use_case": "Browser caches, OS page replacement, database query caches, CDN caches.",
+    "viz": "generic_concept",
+    "quiz": [
+      {"q": "An LRU cache evicts:", "options": ["The largest item", "The least-recently-used item", "The oldest by insertion", "Randomly"], "answer": 1},
+      {"q": "Hash map + doubly linked list gives:", "options": ["O(log n) ops", "O(1) lookup + O(1) reordering", "O(n) ops but less memory", "O(1) lookup only"], "answer": 1}
+    ]
+  },
+  {
+    "id": 53,
+    "name": "Bloom Filter",
+    "difficulty": "medium",
+    "category": "data structures",
+    "tagline": "Probabilistic 'is this in the set?' — no false negatives, occasional false positives.",
+    "explanation": "A Bloom filter is a bit array with k hash functions. To add x: hash it k times, set those k bits. To check x: hash, check those k bits — if any is 0, definitely not in set; if all 1, probably in set (could be a false positive from other items setting those bits).",
+    "intuition": "Don't store the full set — just store a fingerprint. If the fingerprint doesn't match, definitely not there. If it does match, maybe — go double-check.",
+    "code": "import hashlib\n\nclass BloomFilter:\n    def __init__(self, size, k):\n        self.size = size\n        self.k = k\n        self.bits = [False] * size\n    def _hashes(self, item):\n        h = hashlib.md5(str(item).encode()).digest()\n        # use bytes of digest as k separate hashes\n        return [h[i] * 256 + h[i + 1] % self.size for i in range(self.k)]\n    def add(self, item):\n        for idx in self._hashes(item):\n            self.bits[idx % self.size] = True\n    def __contains__(self, item):\n        return all(self.bits[idx % self.size] for idx in self._hashes(item))",
+    "complexity": {"time": "O(k) per op", "space": "O(size) bits"},
+    "use_case": "Pre-DB cache (don't query DB for items definitely not there), spell-checkers, network-routing, web crawlers tracking visited URLs.",
+    "viz": "generic_concept",
+    "quiz": [
+      {"q": "A Bloom filter's worst kind of error is:", "options": ["False positive", "False negative", "Slow lookup", "High memory"], "answer": 0},
+      {"q": "A Bloom filter can have:", "options": ["False positives only", "False negatives only", "Both", "Neither"], "answer": 0}
+    ]
+  },
+  {
+    "id": 54,
+    "name": "Skip List",
+    "difficulty": "hard",
+    "category": "data structures",
+    "tagline": "Sorted linked list with express lanes.",
+    "explanation": "A skip list is a multi-level linked list. The bottom level holds every element in sorted order. Each higher level is a randomized subset (roughly half) of the level below, acting as an express lane. Search descends from top, skipping forward fast, then dropping to lower levels. Expected O(log n) for all ops.",
+    "intuition": "An interstate highway map: top level is interstates with few exits, bottom level is local roads with every stop. You take the highway as far as you can, then drop down to local roads to reach the destination.",
+    "code": "import random\n\nclass SkipNode:\n    def __init__(self, key, levels):\n        self.key = key\n        self.next = [None] * levels\n\nclass SkipList:\n    def __init__(self, max_level=16, p=0.5):\n        self.max_level = max_level\n        self.p = p\n        self.head = SkipNode(None, max_level)\n        self.level = 0\n    def _rand_level(self):\n        lvl = 1\n        while random.random() < self.p and lvl < self.max_level:\n            lvl += 1\n        return lvl\n    def insert(self, key):\n        update = [self.head] * self.max_level\n        x = self.head\n        for i in range(self.level - 1, -1, -1):\n            while x.next[i] and x.next[i].key < key:\n                x = x.next[i]\n            update[i] = x\n        lvl = self._rand_level()\n        if lvl > self.level:\n            for i in range(self.level, lvl): update[i] = self.head\n            self.level = lvl\n        new = SkipNode(key, lvl)\n        for i in range(lvl):\n            new.next[i] = update[i].next[i]\n            update[i].next[i] = new",
+    "complexity": {"time": "O(log n) expected", "space": "O(n)"},
+    "use_case": "Redis sorted sets, concurrent ordered maps, alternative to balanced BSTs.",
+    "viz": "generic_concept",
+    "quiz": [
+      {"q": "Skip lists achieve O(log n) operations via:", "options": ["Balancing rotations", "Randomization", "Hashing", "Memoization"], "answer": 1},
+      {"q": "Skip lists are an alternative to:", "options": ["Hash maps", "Balanced BSTs (e.g. red-black trees)", "Heaps", "Tries"], "answer": 1}
+    ]
+  },
+  {
+    "id": 55,
+    "name": "Catalan Numbers & Counting",
+    "difficulty": "hard",
+    "category": "dynamic programming",
+    "tagline": "Counting balanced structures: parentheses, BSTs, triangulations.",
+    "explanation": "Catalan numbers C_n = (1/(n+1)) × C(2n, n) count balanced-parenthesis strings, binary-search-tree shapes, polygon triangulations, monotonic lattice paths, and more. The recurrence C_{n+1} = Σ C_i × C_{n-i} encodes the 'split into two parts' substructure many counting problems share.",
+    "intuition": "Many counting problems share the same combinatorial DNA: 'choose a split point, recursively count each side, sum over all splits.' That's the Catalan recurrence.",
+    "code": "def catalan(n):\n    # via DP\n    C = [0] * (n + 1)\n    C[0] = 1\n    for i in range(1, n + 1):\n        for j in range(i):\n            C[i] += C[j] * C[i - 1 - j]\n    return C[n]\n\ndef num_bsts(n):  # number of structurally distinct BSTs with n keys\n    return catalan(n)",
+    "complexity": {"time": "O(n²) via DP, O(n) via formula", "space": "O(n)"},
+    "use_case": "Counting balanced parentheses, BST shapes, paths in a grid that don't cross a diagonal, polygon triangulations.",
+    "viz": "generic_concept",
+    "quiz": [
+      {"q": "C₅ (the 5th Catalan number) is:", "options": ["14", "42", "132", "429"], "answer": 1},
+      {"q": "Catalan numbers count, among other things:", "options": ["Prime numbers", "Balanced parenthesis sequences", "Permutations", "Subsets"], "answer": 1}
+    ]
+  },
+  {
+    "id": 56,
+    "name": "Matrix Exponentiation",
+    "difficulty": "hard",
+    "category": "dynamic programming",
+    "tagline": "Solve linear recurrences in O(log n).",
+    "explanation": "Linear recurrences (Fibonacci, tribonacci, count-paths-of-length-n) can be expressed as M^n × v, where M is a constant matrix and v is the initial state vector. Matrix exponentiation via repeated squaring lets you raise M to a huge power n in O(k³ log n), where k is the matrix size. Turns O(n) into O(log n).",
+    "intuition": "Like fast exponentiation (a^n in log n by squaring), but with matrices. A linear recurrence is just repeated matrix multiplication.",
+    "code": "def matmul(A, B, mod=None):\n    n, m, p = len(A), len(B), len(B[0])\n    C = [[0]*p for _ in range(n)]\n    for i in range(n):\n        for k in range(m):\n            if A[i][k]:\n                for j in range(p):\n                    C[i][j] += A[i][k] * B[k][j]\n                    if mod: C[i][j] %= mod\n    return C\n\ndef matpow(M, p, mod=None):\n    n = len(M)\n    result = [[1 if i==j else 0 for j in range(n)] for i in range(n)]\n    base = [row[:] for row in M]\n    while p:\n        if p & 1: result = matmul(result, base, mod)\n        base = matmul(base, base, mod)\n        p >>= 1\n    return result\n\ndef fib(n):\n    if n == 0: return 0\n    M = [[1, 1], [1, 0]]\n    return matpow(M, n)[0][1]",
+    "complexity": {"time": "O(k³ log n)", "space": "O(k²)"},
+    "use_case": "Huge-n Fibonacci/recurrences, counting paths in a graph of length n, competitive programming.",
+    "viz": "generic_concept",
+    "quiz": [
+      {"q": "Matrix exponentiation reduces O(n) linear recurrences to:", "options": ["O(log n)", "O(1)", "O(√n)", "O(n / log n)"], "answer": 0},
+      {"q": "The trick relies on:", "options": ["Memoization", "Repeated squaring (binary exponentiation)", "Hashing", "Dynamic programming on intervals"], "answer": 1}
+    ]
+  },
+  {
+    "id": 57,
+    "name": "Mo's Algorithm",
+    "difficulty": "hard",
+    "category": "patterns",
+    "tagline": "Answer many range queries offline in O((n + q) × √n).",
+    "explanation": "Given q range queries on an array, sort the queries cleverly (block by left endpoint √n, then by right endpoint), and maintain a running answer as you move endpoints. Each pointer moves O(n√n) total, making each query effectively O(√n). Works when you can incrementally add/remove single elements.",
+    "intuition": "Process queries in an order that minimizes how far the endpoints jump between consecutive queries. Sorting by √n-blocks bounds the total motion to O(n√n).",
+    "code": "import math\n\ndef mos_algorithm(arr, queries):\n    n = len(arr)\n    block = int(math.sqrt(n))\n    indexed = [(l, r, i) for i, (l, r) in enumerate(queries)]\n    indexed.sort(key=lambda q: (q[0] // block, q[1] if (q[0] // block) % 2 == 0 else -q[1]))\n    answers = [0] * len(queries)\n    L, R = 0, -1\n    state = {}  # frequency counter or similar\n    for l, r, i in indexed:\n        while R < r: R += 1; state[arr[R]] = state.get(arr[R], 0) + 1\n        while L > l: L -= 1; state[arr[L]] = state.get(arr[L], 0) + 1\n        while R > r: state[arr[R]] -= 1; R -= 1\n        while L < l: state[arr[L]] -= 1; L += 1\n        answers[i] = len(state)  # e.g. distinct elements in range\n    return answers",
+    "complexity": {"time": "O((n + q) × √n)", "space": "O(n + q)"},
+    "use_case": "Range distinct counts, range mode, range XOR with parity — offline range queries when segment trees are too rigid.",
+    "viz": "generic_concept",
+    "quiz": [
+      {"q": "Mo's algorithm is offline because:", "options": ["It works on disk", "All queries must be known in advance to be reordered", "It uses caching", "It runs on multiple machines"], "answer": 1},
+      {"q": "Mo's total complexity for n elements and q queries is:", "options": ["O(n × q)", "O((n + q) × √n)", "O(q × log n)", "O(n log n + q)"], "answer": 1}
+    ]
+  },
+  {
+    "id": 58,
+    "name": "Heavy-Light Decomposition",
+    "difficulty": "hard",
+    "category": "trees",
+    "tagline": "Path queries on trees in O(log² n).",
+    "explanation": "Decompose a tree into 'heavy' paths (each non-leaf's heavy child is the subtree with the most nodes) and 'light' edges. Any root-to-node path crosses at most O(log n) light edges. Layer a segment tree over heavy paths and you can answer arbitrary path queries (sum, max, etc.) in O(log² n).",
+    "intuition": "Convert tree paths into a small number of contiguous segments by following 'heavy' chains. Now the segment tree's range-query power applies.",
+    "code": "# Outline (full impl is long):\n# 1. Compute subtree sizes, mark heavy child.\n# 2. DFS to assign positions in a flat array (heavy children get consecutive positions).\n# 3. Build a segment tree over the flat array.\n# 4. To query path(u, v): walk up heavy chains, query the segment tree on each chain.\n# Look up 'HLD Python competitive programming' for full code.",
+    "complexity": {"time": "O(log² n) per path query", "space": "O(n)"},
+    "use_case": "Path queries (sum, max, gcd) on a tree with updates, LCA via HLD, advanced competitive problems.",
+    "viz": "generic_concept",
+    "quiz": [
+      {"q": "HLD lets you handle path queries on a tree in:", "options": ["O(n)", "O(log² n)", "O(√n)", "O(1)"], "answer": 1},
+      {"q": "HLD chooses the 'heavy' child as:", "options": ["The leftmost child", "The child whose subtree is largest", "The smallest child", "Random"], "answer": 1}
+    ]
+  },
+  {
+    "id": 59,
+    "name": "Lowest Common Ancestor (Binary Lifting)",
+    "difficulty": "hard",
+    "category": "trees",
+    "tagline": "LCA of two tree nodes in O(log n).",
+    "explanation": "Precompute, for each node u, its 2^k-th ancestor for k = 0..log(n). To find LCA(u, v): first lift the deeper node to the same depth as the shallower one; then lift both in tandem until just below their LCA. The result is the parent of the meeting point. Preprocessing O(n log n), query O(log n).",
+    "intuition": "Instead of walking up one step at a time, jump in powers of two. log(n) jumps cover any distance up the tree, and you can binary-search the exact LCA in those jumps.",
+    "code": "import math\n\ndef preprocess(adj, root, n):\n    LOG = max(1, int(math.log2(n)) + 1)\n    up = [[-1] * n for _ in range(LOG)]\n    depth = [0] * n\n    # BFS or DFS to fill depth and up[0]\n    def dfs(u, parent, d):\n        up[0][u] = parent\n        depth[u] = d\n        for v in adj[u]:\n            if v != parent: dfs(v, u, d + 1)\n    dfs(root, -1, 0)\n    for k in range(1, LOG):\n        for v in range(n):\n            if up[k-1][v] != -1:\n                up[k][v] = up[k-1][up[k-1][v]]\n    return up, depth, LOG\n\ndef lca(u, v, up, depth, LOG):\n    if depth[u] < depth[v]: u, v = v, u\n    diff = depth[u] - depth[v]\n    for k in range(LOG):\n        if (diff >> k) & 1: u = up[k][u]\n    if u == v: return u\n    for k in range(LOG - 1, -1, -1):\n        if up[k][u] != up[k][v]:\n            u = up[k][u]; v = up[k][v]\n    return up[0][u]",
+    "complexity": {"time": "O(n log n) preprocess, O(log n) query", "space": "O(n log n)"},
+    "use_case": "Ancestor queries, distance in tree (depth[u] + depth[v] − 2 × depth[LCA]), tree-DP precomputation.",
+    "viz": "generic_concept",
+    "quiz": [
+      {"q": "Binary lifting for LCA answers a query in:", "options": ["O(n)", "O(log n)", "O(1)", "O(√n)"], "answer": 1},
+      {"q": "What does up[k][v] represent?", "options": ["The kth child of v", "The 2^k-th ancestor of v", "v's depth", "v's subtree size"], "answer": 1}
+    ]
+  },
+  {
+    "id": 60,
+    "name": "Sieve of Eratosthenes",
+    "difficulty": "easy",
+    "category": "patterns",
+    "tagline": "All primes up to n in nearly linear time.",
+    "explanation": "Mark all numbers up to n as prime. Walk from 2 upward — for each unmarked p, p is prime; mark every multiple of p starting from p² as composite. Total work O(n log log n) — essentially linear for practical purposes.",
+    "intuition": "Cross out the multiples of 2, then 3, then 5… anything not crossed out is prime. Start crossings at p² since smaller multiples of p were already handled by smaller primes.",
+    "code": "def sieve(n):\n    is_prime = [True] * (n + 1)\n    is_prime[0] = is_prime[1] = False\n    for p in range(2, int(n**0.5) + 1):\n        if is_prime[p]:\n            for multiple in range(p*p, n + 1, p):\n                is_prime[multiple] = False\n    return [i for i, prime in enumerate(is_prime) if prime]",
+    "complexity": {"time": "O(n log log n)", "space": "O(n)"},
+    "use_case": "Number theory, cryptography seeds, competitive problems needing many primes, prime factorization precomputation.",
+    "viz": "generic_concept",
+    "quiz": [
+      {"q": "The Sieve of Eratosthenes runs in:", "options": ["O(n²)", "O(n log n)", "O(n log log n)", "O(n)"], "answer": 2},
+      {"q": "We start crossing out multiples of p from p² because:", "options": ["Smaller multiples are already crossed by smaller primes", "p² is the smallest multiple", "It's a tradition", "p² is prime"], "answer": 0}
+    ]
+  }
+]

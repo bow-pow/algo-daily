@@ -1,0 +1,16 @@
+{
+  "packs": [
+    {
+      "id": "pack-1",
+      "name": "Foundations & Patterns",
+      "description": "Core patterns, classic data structures, intro to DP and graphs.",
+      "file": "curriculum-pack-1.json"
+    },
+    {
+      "id": "pack-2",
+      "name": "Advanced Algorithms",
+      "description": "String matching, advanced graph algorithms, segment trees, computational geometry.",
+      "file": "curriculum-pack-2.json"
+    }
+  ]
+}

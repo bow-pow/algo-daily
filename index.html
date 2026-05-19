@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Algorithm a Day</title>
+
+  <!-- distinctive editorial fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,600&family=IBM+Plex+Sans:wght@400;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css">
+
+  <!-- Firebase SDKs (compat versions — global `firebase` object) -->
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+  <header class="masthead">
+    <div>
+      <h1>Algorithm <span class="ornament">❦</span> a Day</h1>
+      <div class="sub">A daily reader · vol. I · python edition</div>
+    </div>
+    <div class="stats">
+      <div class="stat">
+        <span class="num flame" id="stat-streak">0</span>
+        <span class="lbl">Streak</span>
+      </div>
+      <div class="stat">
+        <span class="num" id="stat-completed">0</span>
+        <span class="lbl">Completed</span>
+      </div>
+      <div class="stat">
+        <span class="num" id="stat-day">—</span>
+        <span class="lbl">Day</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <article class="lesson">
+      <!-- Daily card (today's lesson trigger) -->
+      <div class="daily-card" id="daily-card">
+        <div class="label" id="daily-label">Today's Lesson</div>
+        <div class="day-num" id="daily-day">Day —</div>
+        <h2 id="daily-title">Loading…</h2>
+        <p class="tagline" id="daily-tagline"></p>
+        <button class="unlock" id="unlock-btn" disabled>Unlock today's lesson</button>
+        <div class="locked-msg" id="locked-msg"></div>
+      </div>
+
+      <!-- Lesson body (populated after unlock) -->
+      <div class="lesson-body" id="lesson-body" style="display:none;"></div>
+    </article>
+
+    <aside class="sidebar">
+      <h4>Cloud sync</h4>
+      <div class="cloud-status local" id="cloud-status">
+        <span class="dot"></span>
+        <span id="cloud-text">Local only</span>
+      </div>
+      <button class="small-btn" id="sign-in-btn">Sign in to sync</button>
+      <button class="small-btn" id="sign-out-btn" style="display:none;">Sign out</button>
+
+      <h4>History</h4>
+      <ul class="history-list" id="history-list">
+        <li style="font-style: italic; color: var(--ink-soft); cursor: default;">
+          <span class="title">Nothing yet — unlock day 1 to begin</span>
+        </li>
+      </ul>
+
+      <h4>Backup</h4>
+      <button class="small-btn" id="export-btn">Export progress</button>
+      <button class="small-btn" id="import-btn">Import progress</button>
+      <input type="file" id="import-file" accept=".json" style="display:none;">
+    </aside>
+  </main>
+
+  <footer>
+    <span class="ornament">❦</span>
+    Algorithm a Day
+    <span class="ornament">❦</span>
+  </footer>
+
+  <!-- Auth modal -->
+  <div class="modal-backdrop" id="auth-modal" style="display:none;">
+    <div class="modal">
+      <h2 id="auth-title">Sign in</h2>
+      <div class="sub">Sync your progress across devices</div>
+      <label for="auth-email">Email</label>
+      <input type="email" id="auth-email" placeholder="you@example.com">
+      <label for="auth-pass">Password</label>
+      <input type="password" id="auth-pass" placeholder="••••••••">
+      <div class="err" id="auth-err"></div>
+      <div class="modal-actions">
+        <button class="primary" id="auth-submit">Sign in</button>
+        <button class="secondary" id="auth-cancel">Cancel</button>
+      </div>
+      <div class="toggle" id="auth-toggle">
+        New here? <a id="auth-toggle-link">Create account</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="visualizations.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
