@@ -1,1138 +1,709 @@
-[
-  {
-    "id": 1,
-    "name": "Two Pointers",
-    "difficulty": "easy",
-    "category": "patterns",
-    "tagline": "Walk an array from both ends.",
-    "explanation": "The two-pointer technique uses two indices that traverse an array, either toward each other or in the same direction. It turns many O(n²) problems into O(n) by avoiding nested loops. Classic uses: checking palindromes, finding a pair with a target sum in a sorted array, or reversing in place.",
-    "intuition": "Imagine two people reading the same book — one from the front, one from the back, meeting in the middle. They cover the whole book in half the time it would take one person to read it twice.",
-    "code": "def has_pair_with_sum(nums, target):\n    # nums must be sorted\n    left, right = 0, len(nums) - 1\n    while left < right:\n        s = nums[left] + nums[right]\n        if s == target:\n            return True\n        elif s < target:\n            left += 1\n        else:\n            right -= 1\n    return False",
-    "complexity": {
-      "time": "O(n)",
-      "space": "O(1)"
-    },
-    "use_case": "Two pointers is the workhorse of array-based interview problems and shows up wherever you have ordered data and a relation between two positions. In **competitive programming and interviews**, classic examples include 3Sum, container-with-most-water, and palindrome validation. **Bioinformatics tools** like read-alignment software walk DNA sequences with two indices to find matching subsequences. **Text editors** use the technique when reversing selections in place. **Memory-constrained embedded systems** prefer it because the O(1) extra space is non-negotiable on small devices.",
-    "viz": "two_pointers",
-    "quiz": [
-      {
-        "q": "What's the time complexity of two-pointer pair-sum on a sorted array of length n?",
-        "options": [
-          "O(n²)",
-          "O(n log n)",
-          "O(n)",
-          "O(1)"
-        ],
-        "answer": 2
-      },
-      {
-        "q": "Two pointers requires the array to be sorted for pair-sum problems.",
-        "options": [
-          "True",
-          "False"
-        ],
-        "answer": 0
-      }
-    ]
-  },
-  {
-    "id": 2,
-    "name": "Sliding Window",
-    "difficulty": "easy",
-    "category": "patterns",
-    "tagline": "A moving frame over a sequence.",
-    "explanation": "A sliding window maintains a contiguous range [left, right] over an array or string, expanding or shrinking it to satisfy some condition. Instead of recomputing from scratch each step, you update the window incrementally — adding the new element on the right, removing the old one on the left.",
-    "intuition": "Like a train window: as the train moves forward, you don't reshoot the entire landscape — one new tree comes in, one old tree leaves.",
-    "code": "def max_sum_subarray(nums, k):\n    # max sum of any contiguous subarray of length k\n    window = sum(nums[:k])\n    best = window\n    for i in range(k, len(nums)):\n        window += nums[i] - nums[i - k]\n        best = max(best, window)\n    return best",
-    "complexity": {
-      "time": "O(n)",
-      "space": "O(1)"
-    },
-    "use_case": "Sliding window appears any time you care about a contiguous slice of a stream rather than a single element. **Network monitoring** uses it for moving-average bandwidth calculations and rate limiting (e.g., 'no more than 100 requests per minute' is a sliding-window check). **Stock-analysis software** computes rolling means/standard deviations of prices this way. **Video and audio codecs** apply windowed transformations frame by frame. In **NLP**, finding the longest substring without repeated characters is the canonical interview version; the same idea powers tokenizers scanning for sequences. **Anomaly-detection systems** flag values that deviate from a moving baseline.",
-    "viz": "sliding_window",
-    "quiz": [
-      {
-        "q": "Sliding window typically reduces what naive complexity?",
-        "options": [
-          "O(n) to O(log n)",
-          "O(n²) to O(n)",
-          "O(n³) to O(n²)",
-          "O(2ⁿ) to O(n!)"
-        ],
-        "answer": 1
-      },
-      {
-        "q": "What changes between two consecutive windows of fixed size k?",
-        "options": [
-          "The whole window",
-          "Only one element enters and one leaves",
-          "Half the elements",
-          "Nothing"
-        ],
-        "answer": 1
-      }
-    ]
-  },
-  {
-    "id": 3,
-    "name": "Hash Maps for Lookup",
-    "difficulty": "easy",
-    "category": "data structures",
-    "tagline": "Trade memory for instant lookup.",
-    "explanation": "A hash map (Python dict) stores key-value pairs with average O(1) insertion and lookup. The classic use is reducing a search-and-check loop from O(n²) to O(n) by remembering what you've already seen. Two Sum is the canonical example.",
-    "intuition": "A coat-check ticket. You hand in your coat (key), get a number, and later flash that number to retrieve the coat instantly — no rummaging through the rack.",
-    "code": "def two_sum(nums, target):\n    seen = {}  # value -> index\n    for i, n in enumerate(nums):\n        complement = target - n\n        if complement in seen:\n            return [seen[complement], i]\n        seen[n] = i\n    return None",
-    "complexity": {
-      "time": "O(n)",
-      "space": "O(n)"
-    },
-    "use_case": "Hash maps are arguably the most-used data structure outside arrays. **Databases** use them internally for indexing and join operations (PostgreSQL's hash joins). **Compilers** keep symbol tables as hash maps mapping identifiers to types/scopes. **Web servers** cache session data and route lookups in hash maps. **Two Sum**, deduplication, and anagram grouping are the textbook examples. **Counters** (Python's `collections.Counter`) are hash maps tracking frequency — used everywhere from word counting in NLP to traffic analysis in security logs. **Caching layers** like Memcached and Redis are essentially distributed hash maps.",
-    "viz": "hashmap",
-    "quiz": [
-      {
-        "q": "Average lookup time in a hash map is:",
-        "options": [
-          "O(1)",
-          "O(log n)",
-          "O(n)",
-          "O(n log n)"
-        ],
-        "answer": 0
-      },
-      {
-        "q": "Why does Two Sum with a hash map beat the nested-loop version?",
-        "options": [
-          "Less memory",
-          "Lookups are O(1) instead of O(n)",
-          "Hash maps are sorted",
-          "It uses recursion"
-        ],
-        "answer": 1
-      }
-    ]
-  },
-  {
-    "id": 4,
-    "name": "Prefix Sums",
-    "difficulty": "easy",
-    "category": "patterns",
-    "tagline": "Precompute now, query instantly later.",
-    "explanation": "A prefix sum array stores the cumulative sum up to each index. Once built, any range-sum query [i..j] becomes prefix[j+1] - prefix[i] in O(1), regardless of the range's length. The trick generalizes to range XOR, range counts, and 2D variants.",
-    "intuition": "Like running totals on a bank statement. To know how much you spent between Tuesday and Friday, you don't re-add every transaction — you subtract Tuesday's running total from Friday's.",
-    "code": "def range_sum_queries(nums, queries):\n    # Build prefix array once: prefix[i] = sum of nums[0..i-1]\n    prefix = [0]\n    for n in nums:\n        prefix.append(prefix[-1] + n)\n    # Answer each query in O(1)\n    return [prefix[j + 1] - prefix[i] for i, j in queries]",
-    "complexity": {
-      "time": "O(n) build, O(1) per query",
-      "space": "O(n)"
-    },
-    "use_case": "Prefix sums turn slow repeated range queries into fast ones. **Image processing** uses 2D prefix sums (integral images) for the Viola-Jones face detector and Haar features — letting computer-vision systems compute pixel-region sums in O(1). **Financial dashboards** precompute cumulative revenue arrays for instant 'total between dates X and Y' queries. **Game development** uses them for damage-over-region calculations and heatmaps. The 'subarray sum equals k' problem (combining prefix sums with a hash map) is a classic interview technique and appears in **event-log analytics** when finding time windows whose total matches a target.",
-    "viz": "prefix_sum",
-    "quiz": [
-      {
-        "q": "After building a prefix-sum array, a single range-sum query takes:",
-        "options": [
-          "O(n)",
-          "O(log n)",
-          "O(1)",
-          "O(n²)"
-        ],
-        "answer": 2
-      },
-      {
-        "q": "Range sum from index i to j (inclusive) equals:",
-        "options": [
-          "prefix[j] - prefix[i]",
-          "prefix[j+1] - prefix[i]",
-          "prefix[j] + prefix[i]",
-          "prefix[i] - prefix[j]"
-        ],
-        "answer": 1
-      }
-    ]
-  },
-  {
-    "id": 5,
-    "name": "Stacks",
-    "difficulty": "easy",
-    "category": "data structures",
-    "tagline": "Last in, first out.",
-    "explanation": "A stack supports push (add to top) and pop (remove from top), both O(1). It naturally captures nested or reversed structure: matching brackets, undo history, function calls, depth-first exploration. In Python, a list with append/pop is a stack.",
-    "intuition": "A stack of plates. You add to the top, you take from the top. The plate at the bottom was the first to arrive and will be the last to leave.",
-    "code": "def is_balanced(s):\n    pairs = {')': '(', ']': '[', '}': '{'}\n    stack = []\n    for c in s:\n        if c in '([{':\n            stack.append(c)\n        elif c in ')]}':\n            if not stack or stack.pop() != pairs[c]:\n                return False\n    return not stack",
-    "complexity": {
-      "time": "O(n)",
-      "space": "O(n)"
-    },
-    "use_case": "Stacks underlie much of how computing works behind the scenes. The **call stack** of every program is a literal stack — function calls push frames, returns pop them. **Compilers and parsers** use stacks to match parentheses, parse expressions, and build syntax trees. **Browsers** implement back/forward navigation with two stacks. **Undo/redo** in text editors and graphics software (Photoshop, VS Code) is stack-based. **Virtual machines** like the JVM and Python's interpreter are stack machines — instructions push and pop values from an operand stack. **Postfix calculators** (HP scientific calculators) evaluate expressions directly with a stack.",
-    "viz": "stack",
-    "quiz": [
-      {
-        "q": "Stack order is:",
-        "options": [
-          "FIFO",
-          "LIFO",
-          "Random",
-          "Sorted"
-        ],
-        "answer": 1
-      },
-      {
-        "q": "Which problem is most naturally solved with a stack?",
-        "options": [
-          "Finding the median",
-          "Matching brackets",
-          "Sorting numbers",
-          "Binary search"
-        ],
-        "answer": 1
-      }
-    ]
-  },
-  {
-    "id": 6,
-    "name": "Queues",
-    "difficulty": "easy",
-    "category": "data structures",
-    "tagline": "First in, first out.",
-    "explanation": "A queue removes elements in the order they arrived. It's the right structure when fairness or breadth matters — print jobs, task scheduling, level-order tree traversal, BFS. In Python, collections.deque gives O(1) append and popleft.",
-    "intuition": "A line at a coffee shop. First person in line is the first to be served. Cutting is not allowed.",
-    "code": "from collections import deque\n\ndef first_unique_char(s):\n    counts = {}\n    q = deque()\n    for c in s:\n        counts[c] = counts.get(c, 0) + 1\n        q.append(c)\n        while q and counts[q[0]] > 1:\n            q.popleft()\n    return q[0] if q else None",
-    "complexity": {
-      "time": "O(n)",
-      "space": "O(n)"
-    },
-    "use_case": "Queues model fairness and ordering across countless systems. **Operating systems** use them for process scheduling, print spoolers, and I/O buffers. **Message brokers** like RabbitMQ, Apache Kafka, and AWS SQS are queues at industrial scale, decoupling producers from consumers. **Web servers** queue incoming requests when traffic spikes. **Customer-service systems** (call centers, support tickets) literally implement FIFO queues. **Breadth-first search** uses a queue as its core data structure. In **graphics**, render pipelines and event loops are queue-driven. The **deque** variant powers sliding-window maximum problems and double-ended buffers.",
-    "viz": "queue",
-    "quiz": [
-      {
-        "q": "Queue order is:",
-        "options": [
-          "LIFO",
-          "FIFO",
-          "Priority-based",
-          "Random"
-        ],
-        "answer": 1
-      },
-      {
-        "q": "Which Python structure gives O(1) operations at both ends?",
-        "options": [
-          "list",
-          "tuple",
-          "deque",
-          "set"
-        ],
-        "answer": 2
-      }
-    ]
-  },
-  {
-    "id": 7,
-    "name": "Recursion",
-    "difficulty": "medium",
-    "category": "foundations",
-    "tagline": "Solve a problem by solving smaller versions of itself.",
-    "explanation": "A recursive function calls itself on a smaller input until reaching a base case. Every recursion needs (1) a base case that doesn't recurse, and (2) a recursive step that makes progress toward the base case. The call stack handles bookkeeping for you.",
-    "intuition": "Russian nesting dolls. To open the biggest doll, you open it, then face the same problem on a slightly smaller doll — until the tiniest doll, which has nothing inside.",
-    "code": "def factorial(n):\n    if n <= 1:        # base case\n        return 1\n    return n * factorial(n - 1)  # recursive step\n\ndef reverse_string(s):\n    if len(s) <= 1:\n        return s\n    return reverse_string(s[1:]) + s[0]",
-    "complexity": {
-      "time": "depends — often O(n) or O(2ⁿ)",
-      "space": "O(depth) for the call stack"
-    },
-    "use_case": "Recursion is the natural way to express problems with self-similar structure. **Compilers** parse nested syntax recursively — expressions inside expressions, blocks inside blocks. **Filesystem traversal** (`find`, `du`, backup tools) is recursive by nature. **Graphics**: fractal rendering (Mandelbrot, ray tracing), recursive subdivision for terrain generation. **3D modeling** uses recursive structures like octrees and BSP trees. **JSON/XML parsers** descend into nested objects recursively. **AI search algorithms** (minimax for chess, alpha-beta pruning) are deeply recursive. Many divide-and-conquer algorithms — mergesort, quicksort, FFT — are recursion in disguise.",
-    "viz": "recursion",
-    "quiz": [
-      {
-        "q": "Every recursive function must have:",
-        "options": [
-          "A loop",
-          "A base case",
-          "A global variable",
-          "Two parameters"
-        ],
-        "answer": 1
-      },
-      {
-        "q": "Recursion uses extra memory because of:",
-        "options": [
-          "The heap",
-          "The call stack",
-          "Global state",
-          "The garbage collector"
-        ],
-        "answer": 1
-      }
-    ]
-  },
-  {
-    "id": 8,
-    "name": "Merge Sort",
-    "difficulty": "medium",
-    "category": "sorting",
-    "tagline": "Divide, conquer, merge.",
-    "explanation": "Merge sort recursively splits an array in half until each piece has one element, then merges pieces back together in sorted order. The merge step is the engine — it walks two sorted lists with two pointers, taking the smaller element each time. Stable and guaranteed O(n log n).",
-    "intuition": "Sorting a giant deck of cards by splitting it among helpers, each sorting their smaller pile, then zipping the piles back together in order.",
-    "code": "def merge_sort(arr):\n    if len(arr) <= 1:\n        return arr\n    mid = len(arr) // 2\n    left = merge_sort(arr[:mid])\n    right = merge_sort(arr[mid:])\n    return merge(left, right)\n\ndef merge(a, b):\n    out, i, j = [], 0, 0\n    while i < len(a) and j < len(b):\n        if a[i] <= b[j]:\n            out.append(a[i]); i += 1\n        else:\n            out.append(b[j]); j += 1\n    out.extend(a[i:]); out.extend(b[j:])\n    return out",
-    "complexity": {
-      "time": "O(n log n)",
-      "space": "O(n)"
-    },
-    "use_case": "Merge sort is the sort of choice when **stability** matters — i.e., when equal elements must preserve their original order. **Java's `Arrays.sort` for objects** uses Timsort, a merge-sort variant; **Python's `sorted()`** is also Timsort. **External sorting** of files too large for RAM — used by databases to sort huge datasets on disk — relies on merge sort because it accesses data sequentially. **Distributed systems** (Hadoop, Spark) merge-sort intermediate results across nodes. **Bioinformatics pipelines** sort sequencing reads by genomic position using merge variants. **Counting inversions** in an array (how 'unsorted' it is) reuses the merge-sort framework — useful in collaborative-filtering metrics.",
-    "viz": "merge_sort",
-    "quiz": [
-      {
-        "q": "Merge sort's worst-case time complexity is:",
-        "options": [
-          "O(n)",
-          "O(n log n)",
-          "O(n²)",
-          "O(log n)"
-        ],
-        "answer": 1
-      },
-      {
-        "q": "Merge sort is stable — equal elements keep relative order.",
-        "options": [
-          "True",
-          "False"
-        ],
-        "answer": 0
-      }
-    ]
-  },
-  {
-    "id": 9,
-    "name": "Quick Sort",
-    "difficulty": "medium",
-    "category": "sorting",
-    "tagline": "Partition around a pivot.",
-    "explanation": "Quick sort picks a pivot, partitions the array so smaller elements go left and larger go right, then recurses on both sides. Average O(n log n), worst case O(n²) when pivots are pathological — random or median-of-three pivoting avoids this in practice.",
-    "intuition": "Sorting a roomful of people by height: pick one person, send shorter to the left wall, taller to the right. Repeat within each wall until everyone's lined up.",
-    "code": "def quick_sort(arr):\n    if len(arr) <= 1:\n        return arr\n    pivot = arr[len(arr) // 2]\n    left  = [x for x in arr if x < pivot]\n    mid   = [x for x in arr if x == pivot]\n    right = [x for x in arr if x > pivot]\n    return quick_sort(left) + mid + quick_sort(right)",
-    "complexity": {
-      "time": "O(n log n) avg, O(n²) worst",
-      "space": "O(log n) avg recursion depth"
-    },
-    "use_case": "Quick sort is the default in-place sorting algorithm for primitive types in many languages. **C's qsort**, **C++'s `std::sort`** (introsort, a quicksort hybrid), and historically **Java's primitive sort** all use it. It's preferred when memory is tight and stability isn't needed. **Quickselect**, a relative, finds the kth smallest element in O(n) average — used in **statistics packages** for fast median computation and in **machine-learning pipelines** for top-k filtering. **Database query engines** use quickselect for ORDER BY LIMIT queries.",
-    "viz": "quick_sort",
-    "quiz": [
-      {
-        "q": "Quick sort's worst case happens when:",
-        "options": [
-          "Array is already sorted with bad pivot",
-          "Array has duplicates",
-          "Array is empty",
-          "Pivot is the median"
-        ],
-        "answer": 0
-      },
-      {
-        "q": "Quick sort's average time complexity is:",
-        "options": [
-          "O(n)",
-          "O(n log n)",
-          "O(n²)",
-          "O(log n)"
-        ],
-        "answer": 1
-      }
-    ]
-  },
-  {
-    "id": 10,
-    "name": "Heap & Priority Queue",
-    "difficulty": "medium",
-    "category": "data structures",
-    "tagline": "Always grab the smallest (or largest) next.",
-    "explanation": "A binary heap is a tree-shaped array where every parent is ≤ (min-heap) or ≥ (max-heap) its children. Push and pop are O(log n); peeking the top is O(1). Python's heapq is a min-heap — negate values for a max-heap.",
-    "intuition": "A hospital triage desk. Patients arrive in any order, but the most urgent is always served first. Adding a new patient takes a moment to slot them into the right priority — but pulling the next is instant.",
-    "code": "import heapq\n\ndef k_largest(nums, k):\n    # Maintain a min-heap of size k.\n    h = []\n    for n in nums:\n        heapq.heappush(h, n)\n        if len(h) > k:\n            heapq.heappop(h)\n    return sorted(h, reverse=True)",
-    "complexity": {
-      "time": "O(log n) push/pop, O(1) peek",
-      "space": "O(n)"
-    },
-    "use_case": "Heaps power any system that needs 'next most important' fast. **Operating system schedulers** use priority queues to pick the next thread to run. **Dijkstra's algorithm** uses a heap, which means it sits inside **GPS routing, network packet routing (OSPF), and game pathfinding**. **Event-driven simulations** (discrete event simulators, game engines) use heaps keyed by event time. **Top-k systems**: trending tweets, k-nearest-neighbors, real-time leaderboards. **Median maintenance** on a stream (two heaps) is used in **statistics pipelines** and **fraud-detection systems** monitoring transaction percentiles. Heaps underlie **Huffman coding** for compression (ZIP, JPEG).",
-    "viz": "heap",
-    "quiz": [
-      {
-        "q": "Pushing into a heap of n elements takes:",
-        "options": [
-          "O(1)",
-          "O(log n)",
-          "O(n)",
-          "O(n log n)"
-        ],
-        "answer": 1
-      },
-      {
-        "q": "To make a max-heap with Python's heapq, you can:",
-        "options": [
-          "Use heapq.maxheap",
-          "Negate values when pushing",
-          "Sort first",
-          "You can't — heapq is min only"
-        ],
-        "answer": 1
-      }
-    ]
-  },
-  {
-    "id": 11,
-    "name": "Linked List Basics",
-    "difficulty": "medium",
-    "category": "data structures",
-    "tagline": "Nodes connected by pointers, not indices.",
-    "explanation": "A linked list stores elements as nodes, each pointing to the next. Insertion and deletion are O(1) given a node reference, but indexed access is O(n). The classic interview moves: reverse it, detect a cycle (Floyd's), find the middle (fast/slow pointers).",
-    "intuition": "A treasure hunt. Each clue tells you where the next clue is. You can't skip to clue 5 without going through 1, 2, 3, 4.",
-    "code": "class Node:\n    def __init__(self, val, nxt=None):\n        self.val, self.next = val, nxt\n\ndef reverse(head):\n    prev, curr = None, head\n    while curr:\n        nxt = curr.next\n        curr.next = prev\n        prev = curr\n        curr = nxt\n    return prev",
-    "complexity": {
-      "time": "O(n) traverse, O(1) insert at known node",
-      "space": "O(1)"
-    },
-    "use_case": "Linked lists shine when you need O(1) insertion/deletion mid-sequence and don't need indexed access. They're the foundation of **LRU caches** (doubly linked list + hash map — used in browser caches, CPU caches, Memcached eviction). **OS kernels** (Linux's task list, memory page lists) use linked lists for collections that grow and shrink unpredictably. **Music playlists**, **text editors' line buffers**, and **undo systems** sometimes use linked lists. **Garbage collectors** track allocations as linked structures. The interview classics — reverse a list, detect a cycle, find the middle — appear because list manipulation tests fundamentals.",
-    "viz": "linked_list",
-    "quiz": [
-      {
-        "q": "Accessing the kth element of a linked list takes:",
-        "options": [
-          "O(1)",
-          "O(log k)",
-          "O(k)",
-          "O(n²)"
-        ],
-        "answer": 2
-      },
-      {
-        "q": "Floyd's cycle detection uses:",
-        "options": [
-          "A hash set",
-          "Two pointers at different speeds",
-          "A stack",
-          "Recursion"
-        ],
-        "answer": 1
-      }
-    ]
-  },
-  {
-    "id": 12,
-    "name": "Binary Trees & Traversals",
-    "difficulty": "medium",
-    "category": "trees",
-    "tagline": "Every node has at most two children.",
-    "explanation": "A binary tree's three depth-first traversals — preorder (root, left, right), inorder (left, root, right), postorder (left, right, root) — each reveal different structure. Inorder on a Binary Search Tree gives sorted values. Level-order (BFS) walks layer by layer.",
-    "intuition": "A family tree of pure firstborns and second-borns. You can read names oldest-ancestor-first, generation-by-generation, or descendants-first, depending on what you want to know.",
-    "code": "class TreeNode:\n    def __init__(self, val, left=None, right=None):\n        self.val, self.left, self.right = val, left, right\n\ndef inorder(root, out=None):\n    if out is None: out = []\n    if root:\n        inorder(root.left, out)\n        out.append(root.val)\n        inorder(root.right, out)\n    return out",
-    "complexity": {
-      "time": "O(n)",
-      "space": "O(h) where h is tree height"
-    },
-    "use_case": "Binary trees are the chassis for many higher-level structures. **Databases** use B-trees and B+ trees (generalized binary trees) for indexes — every time you query an indexed column in PostgreSQL or MySQL, you're walking a tree. **Filesystems** (ext4, NTFS, ReFS) organize directory entries in B-trees. **Expression evaluation** in compilers and spreadsheets builds parse trees. **Decision trees** in machine learning (Random Forests, XGBoost) are binary trees. **Heaps** are binary trees. **Tries** are tree-like. **3D rendering engines** use BSP trees and kd-trees for visibility and collision. The traversals (pre/in/post-order) are general-purpose tools for walking any hierarchical data.",
-    "viz": "binary_tree",
-    "quiz": [
-      {
-        "q": "Inorder traversal of a Binary Search Tree produces:",
-        "options": [
-          "A random order",
-          "Sorted ascending order",
-          "Reverse-sorted order",
-          "Level-by-level order"
-        ],
-        "answer": 1
-      },
-      {
-        "q": "Preorder visits nodes in what order?",
-        "options": [
-          "Left, Root, Right",
-          "Root, Left, Right",
-          "Left, Right, Root",
-          "Right, Root, Left"
-        ],
-        "answer": 1
-      }
-    ]
-  },
-  {
-    "id": 13,
-    "name": "BFS — Breadth-First Search",
-    "difficulty": "medium",
-    "category": "graphs",
-    "tagline": "Explore in concentric rings.",
-    "explanation": "BFS uses a queue to visit nodes layer by layer outward from the source. On unweighted graphs, BFS finds the shortest path (fewest edges). Track visited nodes to avoid revisits.",
-    "intuition": "Dropping a stone in a pond. The ripples reach distance 1 before distance 2, distance 2 before distance 3. BFS visits the graph the same way.",
-    "code": "from collections import deque\n\ndef shortest_path(graph, start, target):\n    q = deque([(start, 0)])\n    seen = {start}\n    while q:\n        node, dist = q.popleft()\n        if node == target:\n            return dist\n        for neighbor in graph[node]:\n            if neighbor not in seen:\n                seen.add(neighbor)\n                q.append((neighbor, dist + 1))\n    return -1",
-    "complexity": {
-      "time": "O(V + E)",
-      "space": "O(V)"
-    },
-    "use_case": "BFS finds shortest paths when edges are unweighted, so it powers anything with 'fewest steps' semantics. **Social networks** use BFS to compute degrees of separation ('friends of friends'). **GPS routing** for transit (subway with unit-time legs) uses BFS variants. **Web crawlers** explore links breadth-first to discover sites layer by layer. **Network broadcast protocols** flood packets in BFS order. **Garbage collectors** (mark-and-sweep) BFS from roots to find reachable objects. **Puzzle solvers** (Rubik's cube minimum moves, 15-puzzle) use BFS because they want the *shortest* solution. **Image processing**: flood fill (the paint bucket tool) is BFS on pixel neighbors.",
-    "viz": "bfs",
-    "quiz": [
-      {
-        "q": "BFS uses which data structure?",
-        "options": [
-          "Stack",
-          "Queue",
-          "Heap",
-          "Hash set"
-        ],
-        "answer": 1
-      },
-      {
-        "q": "BFS gives shortest path on:",
-        "options": [
-          "Any graph",
-          "Weighted graphs",
-          "Unweighted graphs",
-          "Trees only"
-        ],
-        "answer": 2
-      }
-    ]
-  },
-  {
-    "id": 14,
-    "name": "DFS — Depth-First Search",
-    "difficulty": "medium",
-    "category": "graphs",
-    "tagline": "Go deep first, backtrack later.",
-    "explanation": "DFS follows one path as far as it can before backing up. Implemented with recursion (implicit stack) or an explicit stack. Mark visited nodes to avoid loops. DFS is the backbone of cycle detection, topological sort, and connectivity checks.",
-    "intuition": "Exploring a cave with one tunnel after another. You take the first tunnel and keep going until you hit a dead end, then back up to the last fork and try the next tunnel.",
-    "code": "def dfs(graph, node, seen=None):\n    if seen is None: seen = set()\n    seen.add(node)\n    for neighbor in graph[node]:\n        if neighbor not in seen:\n            dfs(graph, neighbor, seen)\n    return seen",
-    "complexity": {
-      "time": "O(V + E)",
-      "space": "O(V) for recursion or stack"
-    },
-    "use_case": "DFS is the go-to when you need to explore deeply before broadly. **Compilers** use DFS for topological sort of dependencies, cycle detection in build graphs (CMake, Make), and dead-code elimination. **Maze generation and solving** in games. **Detecting deadlocks** in operating systems and databases (a cycle in the wait-for graph). **Web scraping** with depth limits. **Refactoring tools** (rename, find-references) walk an AST via DFS. **Network protocols** use DFS in spanning-tree algorithms (STP in Ethernet switches). DFS is also the algorithmic basis for **backtracking**, which underpins solvers for Sudoku, N-Queens, constraint satisfaction, and SAT.",
-    "viz": "dfs",
-    "quiz": [
-      {
-        "q": "DFS naturally uses:",
-        "options": [
-          "A queue",
-          "A stack (or recursion)",
-          "A heap",
-          "A sorted list"
-        ],
-        "answer": 1
-      },
-      {
-        "q": "Which is DFS NOT typically used for?",
-        "options": [
-          "Topological sort",
-          "Cycle detection",
-          "Shortest path on weighted graphs",
-          "Connected components"
-        ],
-        "answer": 2
-      }
-    ]
-  },
-  {
-    "id": 15,
-    "name": "Binary Search Variants",
-    "difficulty": "medium",
-    "category": "search",
-    "tagline": "Halve the search space each step — but watch the boundaries.",
-    "explanation": "You know plain binary search. The real skill is the variants: finding the leftmost or rightmost occurrence, finding the insertion point, searching a rotated array, or binary-searching on the answer (e.g. minimum capacity to ship packages in D days). The pattern is always the same: define a predicate that flips from False to True (or vice versa), then find the boundary.",
-    "intuition": "A bouncer at a club checking IDs sorted by birthday — they don't scan every ID, they jump to the middle and ask 'older or younger than 21?' to halve the stack each time.",
-    "code": "def left_bound(nums, target):\n    # smallest i such that nums[i] >= target\n    lo, hi = 0, len(nums)\n    while lo < hi:\n        mid = (lo + hi) // 2\n        if nums[mid] < target:\n            lo = mid + 1\n        else:\n            hi = mid\n    return lo  # may equal len(nums)",
-    "complexity": {
-      "time": "O(log n)",
-      "space": "O(1)"
-    },
-    "use_case": "Binary search appears far beyond the textbook 'find element in sorted array' problem. **Standard library functions** — `bisect` in Python, `lower_bound` in C++ — power database range queries and ordered-set operations. **Version control systems** (`git bisect`) use it to find the commit that introduced a bug. **Database B-tree indexes** binary-search within nodes. **'Binary search on the answer'** — searching the value space instead of indices — solves problems like 'minimum capacity to ship in D days,' 'split array into K parts minimizing max sum' (appears in **load-balancing systems** and **scheduling**). **Numerical methods** for root-finding (bisection method) are binary search on continuous functions.",
-    "viz": "binary_search",
-    "quiz": [
-      {
-        "q": "Binary search needs the input to be:",
-        "options": [
-          "Reversed",
-          "Sorted (or monotonic)",
-          "Unique",
-          "Powers of two in length"
-        ],
-        "answer": 1
-      },
-      {
-        "q": "'Binary search on the answer' means:",
-        "options": [
-          "Searching for the median",
-          "Binary-searching the value space, not array indices",
-          "Using two pointers",
-          "Recursing twice"
-        ],
-        "answer": 1
-      }
-    ]
-  },
-  {
-    "id": 16,
-    "name": "Backtracking",
-    "difficulty": "hard",
-    "category": "patterns",
-    "tagline": "Try, fail, undo, try again.",
-    "explanation": "Backtracking builds a solution incrementally and abandons (backs up) as soon as it sees a partial choice can't lead to a valid one. The shape is recursion + a 'choose / explore / unchoose' pattern. Pruning bad branches early is what makes it fast in practice despite exponential worst case.",
-    "intuition": "Solving a maze with a piece of chalk. You mark your path; when you hit a dead end, you erase your last mark and try a different turn. You never explore the same dead end twice in a row.",
-    "code": "def permutations(nums):\n    out, path, used = [], [], [False] * len(nums)\n    def backtrack():\n        if len(path) == len(nums):\n            out.append(path[:]); return\n        for i, n in enumerate(nums):\n            if used[i]: continue\n            used[i] = True; path.append(n)   # choose\n            backtrack()                       # explore\n            used[i] = False; path.pop()       # unchoose\n    backtrack()\n    return out",
-    "complexity": {
-      "time": "exponential (problem-dependent)",
-      "space": "O(depth)"
-    },
-    "use_case": "Backtracking is the universal tool for combinatorial search where you need to enumerate or find valid configurations. **Sudoku solvers, crossword generators, N-Queens** are the canonical examples. **SAT solvers** (used in formal verification of hardware and software) are sophisticated backtrackers. **Compilers** use backtracking in regex matching (Perl-compatible regexes). **AI planning systems** explore action sequences with backtracking. **Constraint satisfaction** in scheduling (employee shifts, course timetables, exam scheduling) uses it. **Bioinformatics** uses it for protein folding search. The 'choose-explore-unchoose' pattern is also how many **puzzle game AIs** work.",
-    "viz": "backtracking",
-    "quiz": [
-      {
-        "q": "The signature pattern of backtracking is:",
-        "options": [
-          "Sort then search",
-          "Choose, explore, unchoose",
-          "Divide and conquer",
-          "Memoize and recurse"
-        ],
-        "answer": 1
-      },
-      {
-        "q": "Backtracking's worst case is usually:",
-        "options": [
-          "Polynomial",
-          "Logarithmic",
-          "Exponential",
-          "Constant"
-        ],
-        "answer": 2
-      }
-    ]
-  },
-  {
-    "id": 17,
-    "name": "Greedy Algorithms",
-    "difficulty": "medium",
-    "category": "patterns",
-    "tagline": "Take the locally best step. Hope (or prove) it's globally best.",
-    "explanation": "A greedy algorithm makes the choice that looks best right now without revisiting it. Greedy is fast and simple — but it only gives the right answer when the problem has the 'greedy choice property.' When it doesn't, you need DP. Classic wins: interval scheduling, Huffman coding, coin change (with canonical coins).",
-    "intuition": "Climbing a hill in the fog by always stepping toward the steepest upward direction. Works for nice hills (a single peak); fails for mountain ranges where you might get stuck on a small summit.",
-    "code": "def max_non_overlapping(intervals):\n    # intervals = list of (start, end)\n    intervals.sort(key=lambda x: x[1])   # sort by end time\n    count, end = 0, float('-inf')\n    for s, e in intervals:\n        if s >= end:\n            count += 1\n            end = e\n    return count",
-    "complexity": {
-      "time": "O(n log n) for the sort",
-      "space": "O(1)"
-    },
-    "use_case": "Greedy algorithms are everywhere optimization meets time pressure. **Compilers** use greedy register allocation. **Operating systems** use greedy disk scheduling (shortest-seek-time-first). **Compression**: Huffman coding is greedy and lives inside ZIP, gzip, JPEG, and MP3. **Networking**: shortest-path-first routing (a Dijkstra variant) is greedy. **Scheduling**: interval scheduling for meeting rooms, EDF (earliest deadline first) in real-time systems. **Finance**: making change with canonical coin denominations. **Approximation algorithms** for NP-hard problems (set cover, vertex cover) are often greedy with provable bounds. **Auction systems** and **ad-bidding platforms** use greedy heuristics for fast decisions.",
-    "viz": "greedy",
-    "quiz": [
-      {
-        "q": "Greedy works only when the problem has:",
-        "options": [
-          "A unique solution",
-          "Greedy choice property + optimal substructure",
-          "Monotonic input",
-          "No duplicates"
-        ],
-        "answer": 1
-      },
-      {
-        "q": "For 0/1 knapsack, greedy by value/weight ratio gives:",
-        "options": [
-          "The optimal answer",
-          "An approximation, not optimal",
-          "Nothing — it doesn't apply",
-          "The minimum, not the maximum"
-        ],
-        "answer": 1
-      }
-    ]
-  },
-  {
-    "id": 18,
-    "name": "Memoization",
-    "difficulty": "medium",
-    "category": "dynamic programming",
-    "tagline": "Don't compute the same thing twice.",
-    "explanation": "Memoization caches the result of expensive function calls keyed by their arguments. The first call computes; later calls hit the cache. It turns naive exponential recursions (like Fibonacci) into linear — same recursive code, dramatic speedup. In Python, functools.lru_cache adds it with one line.",
-    "intuition": "A research assistant who keeps a notebook. You ask the same question twice — they don't redo the research, they read the answer from the notebook.",
-    "code": "from functools import lru_cache\n\n@lru_cache(maxsize=None)\ndef fib(n):\n    if n < 2:\n        return n\n    return fib(n - 1) + fib(n - 2)\n# Without the cache: O(2^n). With it: O(n).",
-    "complexity": {
-      "time": "O(distinct subproblems)",
-      "space": "O(distinct subproblems)"
-    },
-    "use_case": "Memoization is the elegant way to add caching to existing recursive code. **Python's `functools.lru_cache`** decorator is one line and transforms exponential algorithms into linear ones. **Web frameworks** memoize expensive view computations. **Game AI** caches evaluations of board states (chess transposition tables). **Parser combinators** (in compilers and config-file readers) memoize partial parses (this is called **packrat parsing**). **Mathematical libraries** memoize special-function evaluations. **Build systems** (Bazel, Buck, Nix) are sophisticated memoization layers — they cache build outputs keyed by inputs. **HTTP caching** (ETags, browser cache) is memoization at the network layer.",
-    "viz": "memoization",
-    "quiz": [
-      {
-        "q": "Memoization works because:",
-        "options": [
-          "Recursion is fast",
-          "Subproblems overlap and can be reused",
-          "It uses less memory",
-          "Caches are sorted"
-        ],
-        "answer": 1
-      },
-      {
-        "q": "Memoized Fibonacci goes from what to what?",
-        "options": [
-          "O(n) to O(log n)",
-          "O(2ⁿ) to O(n)",
-          "O(n²) to O(n)",
-          "O(n!) to O(n)"
-        ],
-        "answer": 1
-      }
-    ]
-  },
-  {
-    "id": 19,
-    "name": "Dynamic Programming — Tabulation",
-    "difficulty": "hard",
-    "category": "dynamic programming",
-    "tagline": "Fill a table bottom-up; the answer lives in the last cell.",
-    "explanation": "Tabulation is bottom-up DP: you identify subproblems, order them so dependencies come first, and fill a table iteratively. No recursion, no stack overflow risk, often more cache-friendly. The art is in defining the right state and recurrence.",
-    "intuition": "Building a brick wall. You can't lay the top bricks before the bottom ones — but once the bottom is solid, every higher row uses only the row beneath it.",
-    "code": "def climb_stairs(n):\n    # ways to climb n stairs taking 1 or 2 steps\n    if n <= 2: return n\n    dp = [0] * (n + 1)\n    dp[1], dp[2] = 1, 2\n    for i in range(3, n + 1):\n        dp[i] = dp[i - 1] + dp[i - 2]\n    return dp[n]",
-    "complexity": {
-      "time": "O(states × transitions)",
-      "space": "O(states) — often reducible"
-    },
-    "use_case": "Bottom-up DP is the workhorse behind countless optimization problems. **Bioinformatics**: sequence alignment (Needleman-Wunsch, Smith-Waterman) for DNA/protein matching — used in BLAST and every gene-comparison tool. **Speech recognition** uses DP (Viterbi algorithm) to find most-likely word sequences. **NLP**: CYK parsing for context-free grammars. **Computer vision**: dynamic time warping for gesture recognition. **Finance**: optimal trade execution, portfolio optimization. **Logistics**: scheduling with multiple constraints. **Compilers** use DP for optimal instruction selection. **Spreadsheets** evaluate formula dependency graphs via DP-like memoization.",
-    "viz": "dp_tabulation",
-    "quiz": [
-      {
-        "q": "Tabulation differs from memoization mainly in:",
-        "options": [
-          "Time complexity",
-          "Direction: bottom-up vs top-down",
-          "Whether it uses caches",
-          "Whether it's correct"
-        ],
-        "answer": 1
-      },
-      {
-        "q": "The Fibonacci-style climb-stairs problem has space complexity reducible to:",
-        "options": [
-          "O(n²)",
-          "O(n)",
-          "O(log n)",
-          "O(1) — only two prior values matter"
-        ],
-        "answer": 3
-      }
-    ]
-  },
-  {
-    "id": 20,
-    "name": "0/1 Knapsack",
-    "difficulty": "hard",
-    "category": "dynamic programming",
-    "tagline": "Take it or leave it — maximize value within a weight budget.",
-    "explanation": "Classic DP. State: dp[i][w] = max value using items 0..i-1 within weight w. Transition: at each item, choose to take it (if it fits) or skip. The recurrence captures the take/skip fork. Many seemingly different DP problems are knapsack in disguise.",
-    "intuition": "Packing for a flight with a strict weight limit. Each item has a weight and a value to you — you can take an item or leave it (no halves). The goal is the most valuable bag that still fits the limit.",
-    "code": "def knapsack(weights, values, capacity):\n    n = len(weights)\n    dp = [[0] * (capacity + 1) for _ in range(n + 1)]\n    for i in range(1, n + 1):\n        w_i, v_i = weights[i - 1], values[i - 1]\n        for w in range(capacity + 1):\n            dp[i][w] = dp[i - 1][w]                          # skip\n            if w_i <= w:\n                dp[i][w] = max(dp[i][w], dp[i - 1][w - w_i] + v_i)  # take\n    return dp[n][capacity]",
-    "complexity": {
-      "time": "O(n × capacity)",
-      "space": "O(n × capacity) — reducible to O(capacity)"
-    },
-    "use_case": "0/1 Knapsack and its variants model resource-allocation problems across industries. **Cloud computing**: bin-packing servers with VMs of varying CPU/memory needs (Kubernetes scheduling). **Finance**: capital budgeting — pick a portfolio of projects within a budget to maximize NPV. **Cargo loading** in shipping (containers, aircraft weight balancing). **Cutting stock problems** in manufacturing (paper rolls, sheet metal). **Cryptography**: early public-key systems (Merkle–Hellman knapsack cryptosystem, since broken). **Game development**: ability/perk selection within a point budget. **DNA fragment assembly** uses knapsack variants.",
-    "viz": "knapsack",
-    "quiz": [
-      {
-        "q": "0/1 knapsack's complexity is:",
-        "options": [
-          "O(n log n)",
-          "O(n × capacity)",
-          "O(2ⁿ)",
-          "O(n²)"
-        ],
-        "answer": 1
-      },
-      {
-        "q": "0/1 knapsack is called 'pseudo-polynomial' because:",
-        "options": [
-          "It uses recursion",
-          "Capacity is a numeric value, not the input length",
-          "It's actually exponential",
-          "It needs sorting"
-        ],
-        "answer": 1
-      }
-    ]
-  },
-  {
-    "id": 21,
-    "name": "Longest Common Subsequence",
-    "difficulty": "hard",
-    "category": "dynamic programming",
-    "tagline": "Match what you can, in order, across two sequences.",
-    "explanation": "The LCS of two strings is the longest sequence appearing in both, in order but not necessarily contiguously. dp[i][j] = LCS length of the first i chars of A and first j chars of B. If characters match, extend; otherwise take the better of dropping one character from either side.",
-    "intuition": "Comparing two playlists song by song to find the longest shared listening journey — keeping order, skipping mismatches, never re-ordering.",
-    "code": "def lcs(a, b):\n    m, n = len(a), len(b)\n    dp = [[0] * (n + 1) for _ in range(m + 1)]\n    for i in range(1, m + 1):\n        for j in range(1, n + 1):\n            if a[i - 1] == b[j - 1]:\n                dp[i][j] = dp[i - 1][j - 1] + 1\n            else:\n                dp[i][j] = max(dp[i - 1][j], dp[i][j - 1])\n    return dp[m][n]",
-    "complexity": {
-      "time": "O(m × n)",
-      "space": "O(m × n) — reducible to O(min(m, n))"
-    },
-    "use_case": "LCS is the algorithmic heart of comparison tools. **Version control**: `git diff`, `svn diff`, and every code-review tool (GitHub, GitLab) compute LCS to show what changed line-by-line — they call it 'diff' but it's LCS underneath. **The Unix `diff` utility** and **GNU diffutils** are LCS implementations. **Plagiarism detection** (Turnitin, Moss) finds long shared subsequences across documents. **Bioinformatics**: comparing DNA/protein sequences for evolutionary relationships. **Bug-tracking**: 'similar issues' suggestions often use LCS variants. **Speech/audio** alignment uses related dynamic-time-warping which generalizes LCS.",
-    "viz": "lcs",
-    "quiz": [
-      {
-        "q": "LCS requires the matched characters to be:",
-        "options": [
-          "Contiguous",
-          "In order, not necessarily contiguous",
-          "Reversed",
-          "Unique"
-        ],
-        "answer": 1
-      },
-      {
-        "q": "LCS time complexity for strings of length m and n is:",
-        "options": [
-          "O(m + n)",
-          "O(m × n)",
-          "O((m + n) log (m + n))",
-          "O(2^(m+n))"
-        ],
-        "answer": 1
-      }
-    ]
-  },
-  {
-    "id": 22,
-    "name": "Edit Distance",
-    "difficulty": "hard",
-    "category": "dynamic programming",
-    "tagline": "Minimum insertions, deletions, substitutions to transform A into B.",
-    "explanation": "Also called Levenshtein distance. dp[i][j] = cost to transform A[:i] into B[:j]. If chars match, dp[i][j] = dp[i-1][j-1]. Otherwise it's 1 + min of insert, delete, substitute. The matrix's bottom-right cell is the final answer.",
-    "intuition": "How many one-letter edits to turn 'kitten' into 'sitting'? Substitute k→s, substitute e→i, insert g. Edit distance = 3.",
-    "code": "def edit_distance(a, b):\n    m, n = len(a), len(b)\n    dp = [[0] * (n + 1) for _ in range(m + 1)]\n    for i in range(m + 1): dp[i][0] = i\n    for j in range(n + 1): dp[0][j] = j\n    for i in range(1, m + 1):\n        for j in range(1, n + 1):\n            if a[i - 1] == b[j - 1]:\n                dp[i][j] = dp[i - 1][j - 1]\n            else:\n                dp[i][j] = 1 + min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1])\n    return dp[m][n]",
-    "complexity": {
-      "time": "O(m × n)",
-      "space": "O(m × n)"
-    },
-    "use_case": "Edit distance powers anywhere 'fuzzy match' is needed. **Spell-checkers and autocorrect** (Microsoft Word, Google Docs, every mobile keyboard) rank suggestions by edit distance to the typo. **Search engines** use it for 'Did you mean?' suggestions. **Database fuzzy joins** match misspelled names. **Bioinformatics**: protein/DNA alignment uses weighted edit distance. **DNA error correction** in sequencers. **Phonetic algorithms** (Soundex, Metaphone) combined with edit distance match names across languages. **Plagiarism tools** complement LCS with edit distance. **Customer-record deduplication** in CRMs.",
-    "viz": "edit_distance",
-    "quiz": [
-      {
-        "q": "Edit distance from 'kitten' to 'sitting' is:",
-        "options": [
-          "1",
-          "2",
-          "3",
-          "4"
-        ],
-        "answer": 2
-      },
-      {
-        "q": "The three allowed edits in classic Levenshtein are:",
-        "options": [
-          "Insert, delete, swap-adjacent",
-          "Insert, delete, substitute",
-          "Substitute, reverse, rotate",
-          "Only substitute"
-        ],
-        "answer": 1
-      }
-    ]
-  },
-  {
-    "id": 23,
-    "name": "Union-Find (Disjoint Set)",
-    "difficulty": "hard",
-    "category": "data structures",
-    "tagline": "Track which things are in the same group — fast.",
-    "explanation": "Union-Find maintains a forest where each tree is a group. find(x) returns x's group root; union(x, y) merges two groups. With path compression and union by rank, both run in effectively O(α(n)) — flatter than logarithmic, practically constant.",
-    "intuition": "A family-reunion clipboard. Everyone starts as their own family. When two people discover they're cousins, you merge the two families under one elder. Want to know if two people are related? Walk each up to their elder; if it's the same person, they're family.",
-    "code": "class UnionFind:\n    def __init__(self, n):\n        self.parent = list(range(n))\n        self.rank = [0] * n\n    def find(self, x):\n        while self.parent[x] != x:\n            self.parent[x] = self.parent[self.parent[x]]  # path compression\n            x = self.parent[x]\n        return x\n    def union(self, x, y):\n        rx, ry = self.find(x), self.find(y)\n        if rx == ry: return False\n        if self.rank[rx] < self.rank[ry]: rx, ry = ry, rx\n        self.parent[ry] = rx\n        if self.rank[rx] == self.rank[ry]: self.rank[rx] += 1\n        return True",
-    "complexity": {
-      "time": "≈ O(α(n)) per op — effectively constant",
-      "space": "O(n)"
-    },
-    "use_case": "Union-Find is small but high-leverage. **Kruskal's MST algorithm** uses it — and MSTs appear in **network design** (laying cables, building roads), **cluster analysis** (hierarchical clustering of customers/genes), and **image segmentation**. **Connected-components analysis** in image processing (finding regions of pixels). **Compiler register allocation** groups equivalent live-ranges. **Social-network analysis**: friend-of-friend cluster detection. **Online problems**: dynamic connectivity (are nodes A and B connected right now?). **Account-merging** problems (deduplicating user records when emails overlap). **Percolation theory** simulations.",
-    "viz": "union_find",
-    "quiz": [
-      {
-        "q": "Which two optimizations make Union-Find nearly O(1)?",
-        "options": [
-          "Sorting + hashing",
-          "Path compression + union by rank",
-          "Memoization + DFS",
-          "Heaps + queues"
-        ],
-        "answer": 1
-      },
-      {
-        "q": "α(n) (inverse Ackermann) grows:",
-        "options": [
-          "Faster than logarithmic",
-          "About logarithmic",
-          "Slower than logarithmic — almost constant",
-          "Linearly"
-        ],
-        "answer": 2
-      }
-    ]
-  },
-  {
-    "id": 24,
-    "name": "Dijkstra's Algorithm",
-    "difficulty": "hard",
-    "category": "graphs",
-    "tagline": "Shortest paths from a source in a weighted graph (non-negative weights).",
-    "explanation": "Dijkstra is BFS with a priority queue. You always expand the unvisited node with the smallest tentative distance. Relax each outgoing edge — if going through the current node gives a shorter distance to a neighbor, update it. Requires non-negative edge weights.",
-    "intuition": "A road-trip planner that always next visits the closest unvisited city, updating estimates to other cities as it goes. The closest unvisited city's estimate is already final — no shorter route could exist.",
-    "code": "import heapq\n\ndef dijkstra(graph, start):\n    # graph: {node: [(neighbor, weight), ...]}\n    dist = {start: 0}\n    pq = [(0, start)]\n    while pq:\n        d, node = heapq.heappop(pq)\n        if d > dist.get(node, float('inf')): continue\n        for nb, w in graph[node]:\n            nd = d + w\n            if nd < dist.get(nb, float('inf')):\n                dist[nb] = nd\n                heapq.heappush(pq, (nd, nb))\n    return dist",
-    "complexity": {
-      "time": "O((V + E) log V) with binary heap",
-      "space": "O(V)"
-    },
-    "use_case": "Dijkstra is *the* shortest-path algorithm for real-world weighted graphs. **GPS routing** in Google Maps, Apple Maps, Waze (with heuristic enhancements like A*). **Internet routing protocols**: OSPF (Open Shortest Path First) — your packets find their way across the internet via Dijkstra. **Telephone networks** route calls with shortest-path variants. **Game development**: pathfinding for NPCs and units (StarCraft, Civilization). **Network reliability**: finding cheapest fault-tolerant paths. **Logistics**: route optimization for delivery (UPS, FedEx). **Robotics**: motion planning on graphs of waypoints. **Genome assembly**: shortest superstring approximations.",
-    "viz": "dijkstra",
-    "quiz": [
-      {
-        "q": "Dijkstra fails when the graph has:",
-        "options": [
-          "Cycles",
-          "Negative edge weights",
-          "More than 1000 nodes",
-          "Self-loops"
-        ],
-        "answer": 1
-      },
-      {
-        "q": "Dijkstra with a binary heap runs in:",
-        "options": [
-          "O(V²)",
-          "O((V + E) log V)",
-          "O(V × E)",
-          "O(E²)"
-        ],
-        "answer": 1
-      }
-    ]
-  },
-  {
-    "id": 25,
-    "name": "Topological Sort",
-    "difficulty": "hard",
-    "category": "graphs",
-    "tagline": "Order tasks so prerequisites come first.",
-    "explanation": "On a Directed Acyclic Graph (DAG), a topological order lists every node before any node it points to. Two standard approaches: Kahn's (BFS using in-degrees) or DFS post-order reversed. If the graph has a cycle, no valid ordering exists.",
-    "intuition": "A recipe with steps that depend on each other — you can't bake the cake before mixing the batter, can't mix before measuring. Topological sort gives a valid step order.",
-    "code": "from collections import deque, defaultdict\n\ndef topo_sort(num_nodes, edges):\n    graph = defaultdict(list)\n    indeg = [0] * num_nodes\n    for u, v in edges:\n        graph[u].append(v)\n        indeg[v] += 1\n    q = deque(i for i in range(num_nodes) if indeg[i] == 0)\n    order = []\n    while q:\n        u = q.popleft(); order.append(u)\n        for v in graph[u]:\n            indeg[v] -= 1\n            if indeg[v] == 0: q.append(v)\n    return order if len(order) == num_nodes else []  # [] => cycle",
-    "complexity": {
-      "time": "O(V + E)",
-      "space": "O(V + E)"
-    },
-    "use_case": "Topological sort is the dependency-resolver. **Build systems**: Make, CMake, Maven, Gradle, Bazel — every time you `make` a project, topological sort determines compilation order. **Package managers**: apt, npm, pip, Cargo resolve install order this way. **Spreadsheets** recompute formula cells in topological order (Excel, Google Sheets). **Course-prerequisite checkers** in university registrars. **Compiler instruction scheduling** orders operations respecting data dependencies. **Workflow engines** (Airflow, Luigi, Prefect) schedule DAGs of tasks via topo sort. **CI/CD pipelines** order steps. **Resource-locking systems** detect deadlocks by checking for cycles before sorting.",
-    "viz": "topo_sort",
-    "quiz": [
-      {
-        "q": "Topological sort applies to:",
-        "options": [
-          "Any graph",
-          "Undirected graphs",
-          "Directed Acyclic Graphs",
-          "Trees only"
-        ],
-        "answer": 2
-      },
-      {
-        "q": "If topo sort returns fewer nodes than the graph has:",
-        "options": [
-          "The algorithm has a bug",
-          "There's a cycle",
-          "The graph is disconnected",
-          "There are negative weights"
-        ],
-        "answer": 1
-      }
-    ]
-  },
-  {
-    "id": 26,
-    "name": "Tries (Prefix Trees)",
-    "difficulty": "hard",
-    "category": "data structures",
-    "tagline": "A tree where every path spells a prefix.",
-    "explanation": "A trie stores strings character by character. Each node represents a prefix; children represent extensions. Insert and search are O(length of word), independent of how many words are stored. Tries shine when you need prefix queries — autocomplete, longest common prefix, word games.",
-    "intuition": "A dictionary organized by character. To find 'cat', you go into the C drawer, then A drawer inside it, then T. Every word that starts with 'ca' lives in the CA drawer.",
-    "code": "class Trie:\n    def __init__(self):\n        self.root = {}\n    def insert(self, word):\n        node = self.root\n        for ch in word:\n            node = node.setdefault(ch, {})\n        node['$'] = True   # end-of-word marker\n    def search(self, word):\n        node = self.root\n        for ch in word:\n            if ch not in node: return False\n            node = node[ch]\n        return node.get('$', False)\n    def starts_with(self, prefix):\n        node = self.root\n        for ch in prefix:\n            if ch not in node: return False\n            node = node[ch]\n        return True",
-    "complexity": {
-      "time": "O(L) per op, L = word length",
-      "space": "O(total characters stored)"
-    },
-    "use_case": "Tries are the backbone of fast string operations. **Autocomplete** in search engines (Google Suggest), IDEs (IntelliJ, VS Code), and mobile keyboards is trie-based. **Spell-checkers** use tries for prefix lookups. **IP routing tables** (longest-prefix matching) in routers use specialized tries called *radix trees* or *Patricia trees*. **Word games** (Scrabble, Boggle solvers) use tries to enumerate valid words. **Phone-dial T9 prediction** historically used tries. **DNA k-mer indexing** in bioinformatics. **Compilers** use tries for keyword recognition. **Compression**: LZW (used in GIF) builds an implicit trie of seen strings.",
-    "viz": "trie",
-    "quiz": [
-      {
-        "q": "Looking up a word of length L in a trie takes:",
-        "options": [
-          "O(L)",
-          "O(n) where n is words stored",
-          "O(log n)",
-          "O(L × n)"
-        ],
-        "answer": 0
-      },
-      {
-        "q": "Tries are especially good for which kind of query?",
-        "options": [
-          "Range sums",
-          "Prefix queries",
-          "Sorting",
-          "Median finding"
-        ],
-        "answer": 1
-      }
-    ]
-  },
-  {
-    "id": 27,
-    "name": "Monotonic Stack",
-    "difficulty": "hard",
-    "category": "patterns",
-    "tagline": "A stack that stays sorted on the way in.",
-    "explanation": "A monotonic stack maintains elements in strictly increasing or decreasing order. When a new element would break the order, you pop until it doesn't. This lets you answer 'next greater element', 'largest rectangle in histogram', and 'daily temperatures' in O(n) — each element is pushed and popped at most once.",
-    "intuition": "A line where shorter people in front have to step aside when a taller person joins, until everyone visible from behind is in increasing height. Anyone who steps aside has 'found' their next taller person.",
-    "code": "def next_greater(nums):\n    res = [-1] * len(nums)\n    stack = []  # indices, values decreasing\n    for i, n in enumerate(nums):\n        while stack and nums[stack[-1]] < n:\n            res[stack.pop()] = n\n        stack.append(i)\n    return res",
-    "complexity": {
-      "time": "O(n) — each element pushed/popped once",
-      "space": "O(n)"
-    },
-    "use_case": "Monotonic stack is a sneaky O(n) trick for problems that look quadratic. **Stock-trading algorithms**: stock span problem (how many days a stock has been beaten by today's price). **Histogram analysis**: largest-rectangle-in-histogram appears in **layout engines** and **image-processing region detection**. **Climate data**: 'next warmer day' analysis. **Bar-chart visualization tools** computing crossfilter ranges. **Game development**: visibility computations along a row. **Trapping rain water** (a classic problem with applications in **terrain analysis** and **water resource modeling**).",
-    "viz": "monotonic_stack",
-    "quiz": [
-      {
-        "q": "Monotonic stack runs in O(n) because:",
-        "options": [
-          "The stack is sorted",
-          "Each element is pushed and popped at most once",
-          "It uses binary search",
-          "It's O(n log n), actually"
-        ],
-        "answer": 1
-      },
-      {
-        "q": "Which problem is NOT typically a monotonic stack problem?",
-        "options": [
-          "Next greater element",
-          "Largest histogram rectangle",
-          "Daily temperatures",
-          "Finding the median of a stream"
-        ],
-        "answer": 3
-      }
-    ]
-  },
-  {
-    "id": 28,
-    "name": "Bit Manipulation",
-    "difficulty": "medium",
-    "category": "patterns",
-    "tagline": "Treat integers as arrays of bits.",
-    "explanation": "Bit tricks let you do set operations and certain math in O(1). Key moves: x & 1 (parity), x >> 1 (divide by 2), x & (x - 1) (drop the lowest set bit), x ^ y (toggle differences), and XOR's self-inverse property (a ^ a = 0). Subset enumeration via bitmasks turns combinatorial problems iterative.",
-    "intuition": "Lights in a row, each ON or OFF. Bitwise operations flip, combine, or compare whole rows of lights in one step — far faster than checking lights one by one.",
-    "code": "def single_number(nums):\n    # every element appears twice except one — find it\n    result = 0\n    for n in nums:\n        result ^= n   # a ^ a = 0, so duplicates cancel\n    return result\n\ndef count_set_bits(x):\n    count = 0\n    while x:\n        x &= x - 1   # drop lowest set bit\n        count += 1\n    return count",
-    "complexity": {
-      "time": "O(1) per operation; O(n) per array pass",
-      "space": "O(1)"
-    },
-    "use_case": "Bit manipulation unlocks micro-optimizations and elegant solutions. **Cryptography**: every cipher (AES, SHA-256) is bit operations under the hood. **Networking**: IP-address arithmetic and subnet masks are bit ops. **Compression**: encoding/decoding bit streams in ZIP, JPEG, video codecs. **Database engines**: bitmap indexes for set operations on attributes. **Permissions systems** (Unix chmod) pack flags into bits. **Embedded systems**: register manipulation in firmware. **Graphics**: alpha blending, color channel extraction. **Game AI**: bitboards in chess engines (Stockfish) represent the board as 64-bit integers — moves become bit operations. **Hash functions** rely on bit mixing.",
-    "viz": "bit_manipulation",
-    "quiz": [
-      {
-        "q": "a XOR a equals:",
-        "options": [
-          "a",
-          "1",
-          "0",
-          "-a"
-        ],
-        "answer": 2
-      },
-      {
-        "q": "x & (x - 1) does what?",
-        "options": [
-          "Doubles x",
-          "Drops x's lowest set bit",
-          "Negates x",
-          "Adds 1 to x"
-        ],
-        "answer": 1
-      }
-    ]
-  },
-  {
-    "id": 29,
-    "name": "Floyd's Cycle Detection",
-    "difficulty": "medium",
-    "category": "patterns",
-    "tagline": "Two pointers, different speeds — they meet inside a cycle.",
-    "explanation": "Also called the tortoise and hare. Move one pointer one step at a time, another two steps. If there's a cycle, the fast one laps the slow one and they meet. If not, the fast one reaches the end. Works on linked lists and on functional graphs (like 'happy number').",
-    "intuition": "Two runners on a circular track. The faster one will eventually overtake the slower one from behind, and at that exact moment they're at the same spot on the track.",
-    "code": "def has_cycle(head):\n    slow = fast = head\n    while fast and fast.next:\n        slow = slow.next\n        fast = fast.next.next\n        if slow is fast:\n            return True\n    return False",
-    "complexity": {
-      "time": "O(n)",
-      "space": "O(1) — no extra structure"
-    },
-    "use_case": "Floyd's tortoise-and-hare beats hash-set approaches with O(1) space. **Random number generators**: detecting the cycle length of a PRNG (essential for cryptographic and statistical validity). **Cryptography**: Pollard's rho factorization (used historically to break weak RSA keys) is built on Floyd's algorithm. **Garbage collectors**: detecting reference cycles in graphs of objects. **Functional graph analysis**: iterating `x = f(x)` and finding where the sequence repeats (happy-number problem, ρ-shaped iteration). **Memory-leak detection**: finding cycles in pointer graphs. **Distributed systems**: detecting routing loops in network topologies.",
-    "viz": "floyd_cycle",
-    "quiz": [
-      {
-        "q": "Floyd's trick uses how much extra space?",
-        "options": [
-          "O(n)",
-          "O(log n)",
-          "O(1)",
-          "O(n²)"
-        ],
-        "answer": 2
-      },
-      {
-        "q": "If there's no cycle, the fast pointer:",
-        "options": [
-          "Catches the slow pointer",
-          "Reaches the end (null)",
-          "Loops forever",
-          "Returns to the start"
-        ],
-        "answer": 1
-      }
-    ]
-  },
-  {
-    "id": 30,
-    "name": "Kadane's Algorithm",
-    "difficulty": "medium",
-    "category": "patterns",
-    "tagline": "Maximum subarray sum, in one pass.",
-    "explanation": "At each position, ask: 'is the best subarray ending here just me, or me plus the best subarray ending at the previous position?' That's the whole recurrence. Track the rolling best ending here and the overall best seen. O(n), O(1).",
-    "intuition": "Walking through your year of bank balances, asking at every day: 'has my recent streak been making me richer, or should I forget the past and start counting from today?'",
-    "code": "def max_subarray(nums):\n    best = curr = nums[0]\n    for n in nums[1:]:\n        curr = max(n, curr + n)   # restart or extend\n        best = max(best, curr)\n    return best",
-    "complexity": {
-      "time": "O(n)",
-      "space": "O(1)"
-    },
-    "use_case": "Kadane's algorithm has elegant 'compute as you scan' applications. **Finance**: maximum-profit-single-transaction is a Kadane variant — finding the best historical buy/sell point. **Signal processing**: identifying the strongest contiguous signal in noisy data. **Bioinformatics**: finding the highest-scoring region in a sequence-alignment scoring profile. **Sales analytics**: best contiguous week of revenue. **Climate science**: longest heatwave/coldwave detection. **Game telemetry**: best contiguous play streak. Kadane is also the **gold-standard intro to DP** — many curricula use it to introduce the 'optimal substructure + overlapping subproblems' lens.",
-    "viz": "kadane",
-    "quiz": [
-      {
-        "q": "Kadane's algorithm runs in:",
-        "options": [
-          "O(n²)",
-          "O(n log n)",
-          "O(n)",
-          "O(log n)"
-        ],
-        "answer": 2
-      },
-      {
-        "q": "At each step, Kadane decides between:",
-        "options": [
-          "Sort or don't sort",
-          "Extend the current subarray or start a new one here",
-          "Recurse left or right",
-          "Push or pop"
-        ],
-        "answer": 1
-      }
-    ]
-  }
-]
+/* ==========================================================
+   ALGORITHM-A-DAY — editorial / technical aesthetic
+   Paper. Ink. One sharp accent.
+   ========================================================== */
+
+:root {
+  --paper: #f4ecd8;
+  --paper-deep: #ebe1c8;
+  --ink: #1a1611;
+  --ink-soft: #4a4337;
+  --rule: #c8b990;
+  --rule-soft: #d9cda8;
+  --accent: #b13a2b;       /* cinnabar */
+  --accent-deep: #8a2a1f;
+  --gold: #a8842a;
+  --leaf: #4d6b3a;
+  --error: #8a2a1f;
+
+  --serif: "EB Garamond", "Hoefler Text", Cambria, Georgia, serif;
+  --sans: "IBM Plex Sans", "Helvetica Neue", system-ui, sans-serif;
+  --mono: "JetBrains Mono", "IBM Plex Mono", "SF Mono", Consolas, monospace;
+
+  --shadow: 0 1px 0 rgba(26,22,17,0.04), 0 12px 32px -16px rgba(26,22,17,0.18);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 18px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* paper texture — subtle noise */
+body::before {
+  content: "";
+  position: fixed; inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.1 0 0 0 0 0.08 0 0 0 0 0.06 0 0 0 0.06 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  opacity: 0.55;
+  z-index: 0;
+  mix-blend-mode: multiply;
+}
+
+main, header, footer { position: relative; z-index: 1; }
+
+a { color: var(--accent); text-decoration: none; border-bottom: 1px solid rgba(177,58,43,0.3); }
+a:hover { background: rgba(177,58,43,0.08); }
+
+/* -------------------- masthead -------------------- */
+header.masthead {
+  border-bottom: 3px double var(--ink);
+  padding: 22px 32px 18px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.masthead h1 {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 38px;
+  letter-spacing: -0.01em;
+  margin: 0;
+  font-style: italic;
+}
+.masthead h1 .ornament {
+  color: var(--accent);
+  font-style: normal;
+  margin: 0 6px;
+}
+
+.masthead .sub {
+  font-family: var(--sans);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-top: 4px;
+}
+
+.stats {
+  display: flex;
+  gap: 28px;
+  font-family: var(--sans);
+}
+.stat {
+  text-align: center;
+  min-width: 64px;
+}
+.stat .num {
+  display: block;
+  font-family: var(--serif);
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1;
+}
+.stat .num.flame { color: var(--accent); }
+.stat .lbl {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-top: 3px;
+}
+
+/* -------------------- layout -------------------- */
+main {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 36px 32px 80px;
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 48px;
+}
+
+@media (max-width: 880px) {
+  main { grid-template-columns: 1fr; gap: 24px; padding: 24px 18px 60px; }
+}
+
+article.lesson {
+  min-width: 0;
+}
+
+aside.sidebar {
+  font-family: var(--sans);
+  font-size: 13px;
+  border-left: 1px solid var(--rule);
+  padding-left: 28px;
+}
+@media (max-width: 880px) {
+  aside.sidebar { border-left: none; border-top: 1px solid var(--rule); padding-left: 0; padding-top: 24px; }
+}
+
+/* -------------------- daily card / button -------------------- */
+.daily-card {
+  border: 1px solid var(--ink);
+  background: var(--paper-deep);
+  padding: 28px 32px;
+  margin-bottom: 36px;
+  box-shadow: var(--shadow);
+  position: relative;
+}
+.daily-card::before {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border: 1px solid var(--rule);
+  pointer-events: none;
+}
+
+.daily-card .label {
+  font-family: var(--sans);
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.daily-card .day-num {
+  font-family: var(--serif);
+  font-size: 14px;
+  color: var(--ink-soft);
+  font-style: italic;
+  margin-top: 2px;
+}
+
+.daily-card h2 {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 32px;
+  margin: 8px 0 4px;
+  letter-spacing: -0.01em;
+}
+
+.daily-card .tagline {
+  font-family: var(--serif);
+  font-style: italic;
+  color: var(--ink-soft);
+  margin: 0 0 16px;
+}
+
+button.unlock {
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding: 14px 28px;
+  background: var(--ink);
+  color: var(--paper);
+  border: none;
+  cursor: pointer;
+  position: relative;
+  transition: transform 80ms ease, background 80ms;
+}
+button.unlock:hover { background: var(--accent-deep); }
+button.unlock:active { transform: translateY(1px); }
+button.unlock:disabled {
+  background: var(--rule);
+  color: var(--ink-soft);
+  cursor: not-allowed;
+}
+button.unlock.quiz { background: var(--accent); }
+button.unlock.quiz:hover { background: var(--accent-deep); }
+
+.locked-msg {
+  font-family: var(--sans);
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin-top: 12px;
+  letter-spacing: 0.04em;
+}
+
+/* -------------------- lesson body -------------------- */
+.lesson-body {
+  animation: fade-in 400ms ease;
+}
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+.lesson h3 {
+  font-family: var(--sans);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 36px 0 10px;
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 4px;
+}
+
+.lesson p {
+  margin: 0 0 14px;
+}
+
+.intuition {
+  background: rgba(168,132,42,0.08);
+  border-left: 3px solid var(--gold);
+  padding: 14px 18px;
+  margin: 12px 0;
+  font-style: italic;
+  font-size: 17px;
+}
+
+/* Use cases — substantive prose with named examples in bold */
+.use-case-prose {
+  background: rgba(177,58,43,0.05);
+  border-left: 3px solid var(--accent);
+  padding: 16px 20px;
+  margin: 12px 0;
+  font-size: 16px;
+  line-height: 1.65;
+}
+.use-case-prose strong {
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 0.92em;
+  letter-spacing: 0.01em;
+  color: var(--accent-deep);
+  background: rgba(177,58,43,0.07);
+  padding: 1px 4px;
+  border-radius: 2px;
+}
+
+/* code block — typeset, with line numbers */
+pre.code {
+  background: var(--ink);
+  color: #e8dfc6;
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.65;
+  padding: 18px 20px 18px 56px;
+  overflow-x: auto;
+  position: relative;
+  border-left: 3px solid var(--accent);
+  counter-reset: line;
+  margin: 14px 0;
+}
+pre.code .ln {
+  display: block;
+  position: relative;
+  counter-increment: line;
+}
+pre.code .ln::before {
+  content: counter(line);
+  position: absolute;
+  left: -36px;
+  color: rgba(232,223,198,0.3);
+  font-size: 11px;
+  width: 22px;
+  text-align: right;
+}
+
+/* complexity badges */
+.complexity {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  font-family: var(--sans);
+  font-size: 12px;
+  margin: 10px 0;
+}
+.complexity .badge {
+  border: 1px solid var(--ink);
+  padding: 6px 12px;
+  background: var(--paper);
+}
+.complexity .badge .k {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  display: block;
+  margin-bottom: 2px;
+}
+.complexity .badge .v {
+  font-family: var(--mono);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* viz frame */
+.viz-frame {
+  border: 1px solid var(--rule);
+  background: var(--paper);
+  padding: 18px;
+  margin: 14px 0;
+  text-align: center;
+  position: relative;
+}
+.viz-frame::after {
+  content: "FIG.";
+  position: absolute;
+  top: 8px; left: 12px;
+  font-family: var(--sans);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: var(--ink-soft);
+}
+.viz-frame svg { max-width: 100%; height: auto; }
+
+.viz-controls {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 12px;
+  font-family: var(--sans);
+}
+.viz-controls button {
+  background: var(--paper-deep);
+  border: 1px solid var(--ink);
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  cursor: pointer;
+  font-family: var(--sans);
+  font-weight: 600;
+}
+.viz-controls button:hover { background: var(--ink); color: var(--paper); }
+
+.viz-caption {
+  font-family: var(--sans);
+  font-size: 11px;
+  color: var(--ink-soft);
+  margin-top: 8px;
+  font-style: italic;
+  letter-spacing: 0.04em;
+}
+
+/* difficulty pill */
+.difficulty {
+  display: inline-block;
+  font-family: var(--sans);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border: 1px solid var(--ink);
+  vertical-align: middle;
+}
+.difficulty.easy   { background: var(--leaf); color: var(--paper); border-color: var(--leaf); }
+.difficulty.medium { background: var(--gold); color: var(--ink); border-color: var(--gold); }
+.difficulty.hard   { background: var(--accent); color: var(--paper); border-color: var(--accent); }
+
+/* mark-complete */
+.complete-row {
+  margin-top: 30px;
+  padding-top: 18px;
+  border-top: 1px solid var(--rule);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.complete-row button {
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding: 10px 18px;
+  background: var(--accent);
+  color: var(--paper);
+  border: none;
+  cursor: pointer;
+}
+.complete-row button:hover { background: var(--accent-deep); }
+.complete-row .completed-pill {
+  font-family: var(--sans);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--leaf);
+  font-weight: 600;
+}
+
+/* -------------------- sidebar -------------------- */
+aside h4 {
+  font-family: var(--sans);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 0 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--rule);
+}
+aside h4:not(:first-child) { margin-top: 26px; }
+
+.history-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.history-list li {
+  display: flex;
+  justify-content: space-between;
+  padding: 7px 0;
+  border-bottom: 1px dotted var(--rule-soft);
+  font-size: 13px;
+  cursor: pointer;
+  transition: color 80ms;
+}
+.history-list li:hover { color: var(--accent); }
+.history-list li .n {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-soft);
+  min-width: 24px;
+}
+.history-list li .title {
+  flex: 1;
+  margin: 0 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--serif);
+}
+.history-list li.current { color: var(--accent); font-weight: 600; }
+.history-list li .check {
+  color: var(--leaf);
+  font-size: 11px;
+  font-family: var(--sans);
+}
+
+.cloud-status {
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 8px 10px;
+  background: var(--paper-deep);
+  border: 1px solid var(--rule);
+  color: var(--ink-soft);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cloud-status .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--rule);
+}
+.cloud-status.synced .dot { background: var(--leaf); }
+.cloud-status.local .dot  { background: var(--gold); }
+.cloud-status.error .dot  { background: var(--error); }
+
+aside .small-btn {
+  display: block;
+  width: 100%;
+  font-family: var(--sans);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 600;
+  padding: 9px;
+  background: transparent;
+  border: 1px solid var(--ink);
+  color: var(--ink);
+  cursor: pointer;
+  margin-top: 8px;
+}
+aside .small-btn:hover { background: var(--ink); color: var(--paper); }
+
+/* -------------------- quiz -------------------- */
+.quiz-question {
+  margin-bottom: 22px;
+  padding-bottom: 18px;
+  border-bottom: 1px dotted var(--rule);
+}
+.quiz-question:last-child { border: none; }
+
+.quiz-question .qnum {
+  font-family: var(--sans);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.quiz-question .qtext {
+  font-size: 18px;
+  margin: 4px 0 12px;
+  font-weight: 500;
+}
+
+.quiz-options {
+  display: grid;
+  gap: 8px;
+}
+
+.quiz-option {
+  font-family: var(--serif);
+  font-size: 15px;
+  text-align: left;
+  background: var(--paper-deep);
+  border: 1px solid var(--rule);
+  padding: 11px 16px;
+  cursor: pointer;
+  transition: background 100ms, border-color 100ms;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.quiz-option:hover:not(:disabled) {
+  border-color: var(--ink);
+  background: var(--paper);
+}
+.quiz-option .letter {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-soft);
+  background: var(--paper);
+  width: 22px; height: 22px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--rule);
+  flex-shrink: 0;
+}
+.quiz-option.correct {
+  background: rgba(77,107,58,0.15);
+  border-color: var(--leaf);
+}
+.quiz-option.correct .letter { background: var(--leaf); color: var(--paper); border-color: var(--leaf); }
+.quiz-option.wrong {
+  background: rgba(177,58,43,0.1);
+  border-color: var(--accent);
+}
+.quiz-option.wrong .letter { background: var(--accent); color: var(--paper); border-color: var(--accent); }
+.quiz-option:disabled { cursor: default; }
+
+.quiz-result {
+  margin-top: 26px;
+  padding: 22px;
+  border: 2px solid var(--ink);
+  background: var(--paper-deep);
+  text-align: center;
+}
+.quiz-result h3 {
+  border: none; padding: 0; color: var(--ink); font-family: var(--serif);
+  font-size: 24px; font-weight: 600; font-style: italic;
+  margin: 0 0 4px; letter-spacing: 0;
+  text-transform: none;
+}
+.quiz-result .score {
+  font-family: var(--serif); font-size: 48px;
+  font-weight: 600; color: var(--accent);
+  line-height: 1; margin: 8px 0;
+}
+.quiz-result .verdict {
+  font-family: var(--sans); font-size: 12px;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+/* -------------------- auth modal -------------------- */
+.modal-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(26,22,17,0.6);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 100;
+  backdrop-filter: blur(2px);
+}
+.modal {
+  background: var(--paper);
+  border: 1px solid var(--ink);
+  padding: 32px;
+  max-width: 420px;
+  width: 90%;
+  box-shadow: var(--shadow);
+  position: relative;
+}
+.modal::before {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border: 1px solid var(--rule);
+  pointer-events: none;
+}
+.modal h2 {
+  font-family: var(--serif); font-style: italic; font-weight: 600;
+  font-size: 28px; margin: 0 0 4px;
+}
+.modal .sub {
+  font-family: var(--sans); font-size: 11px;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--ink-soft); margin-bottom: 20px;
+}
+.modal label {
+  display: block; font-family: var(--sans); font-size: 10px;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--ink-soft); margin: 14px 0 4px;
+}
+.modal input {
+  width: 100%; padding: 10px 12px; font-family: var(--mono);
+  font-size: 14px; background: var(--paper-deep);
+  border: 1px solid var(--ink); color: var(--ink);
+}
+.modal input:focus { outline: none; border-color: var(--accent); }
+.modal .modal-actions {
+  display: flex; gap: 8px; margin-top: 20px;
+}
+.modal .modal-actions button { flex: 1; }
+.modal button.primary {
+  font-family: var(--sans); font-size: 11px; font-weight: 600;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  padding: 12px; background: var(--ink); color: var(--paper);
+  border: none; cursor: pointer;
+}
+.modal button.primary:hover { background: var(--accent-deep); }
+.modal button.secondary {
+  font-family: var(--sans); font-size: 11px; font-weight: 600;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  padding: 12px; background: transparent; color: var(--ink);
+  border: 1px solid var(--ink); cursor: pointer;
+}
+.modal button.secondary:hover { background: var(--ink); color: var(--paper); }
+.modal .err {
+  color: var(--error); font-family: var(--sans); font-size: 12px;
+  margin-top: 10px; min-height: 16px;
+}
+.modal .toggle {
+  font-family: var(--sans); font-size: 12px;
+  margin-top: 14px; text-align: center; color: var(--ink-soft);
+}
+.modal .toggle a { cursor: pointer; }
+
+/* -------------------- footer -------------------- */
+footer {
+  text-align: center;
+  font-family: var(--sans);
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  padding: 28px;
+  border-top: 1px solid var(--rule);
+}
+footer .ornament { color: var(--accent); margin: 0 8px; }
+
+/* visualization SVG styling */
+.viz-svg .bar { fill: var(--ink); transition: fill 300ms, y 400ms, height 400ms; }
+.viz-svg .bar.active { fill: var(--accent); }
+.viz-svg .bar.done { fill: var(--leaf); }
+.viz-svg .bar.pivot { fill: var(--gold); }
+.viz-svg .label { font-family: var(--mono); font-size: 11px; fill: var(--paper); }
+.viz-svg .label.outside { fill: var(--ink); }
+.viz-svg .pointer { fill: var(--accent); }
+.viz-svg .pointer-label { font-family: var(--mono); font-size: 11px; font-weight: 700; fill: var(--accent); }
+.viz-svg .arrow { stroke: var(--ink); stroke-width: 1.5; fill: none; }
+.viz-svg .arrow.active { stroke: var(--accent); }
+.viz-svg .node-circle { fill: var(--paper-deep); stroke: var(--ink); stroke-width: 1.5; transition: fill 300ms, stroke 300ms; }
+.viz-svg .node-circle.active { fill: var(--accent); stroke: var(--accent); }
+.viz-svg .node-circle.done { fill: var(--leaf); stroke: var(--leaf); }
+.viz-svg .node-label { font-family: var(--mono); font-size: 12px; fill: var(--ink); text-anchor: middle; dominant-baseline: middle; }
+.viz-svg .node-circle.active + .node-label,
+.viz-svg .node-circle.done + .node-label { fill: var(--paper); }
