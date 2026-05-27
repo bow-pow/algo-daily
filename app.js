@@ -7,12 +7,13 @@
 /* Paste the firebaseConfig object Firebase shows you here (see README).
    If left blank, the app runs in LOCAL-ONLY mode and skips cloud sync. */
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyBcN5ojg4bIyrFsgumR4Ttj1ilv__AF2Fw",
+  authDomain: "algodaily-db5ef.firebaseapp.com",
+  projectId: "algodaily-db5ef",
+  storageBucket: "algodaily-db5ef.firebasestorage.app",
+  messagingSenderId: "1002786497468",
+  appId: "1:1002786497468:web:aea3327b49c7f57c4d41b9",
+  measurementId: "G-QZK7X7JJVE"
 };
 
 const CLOUD_ENABLED = firebaseConfig.apiKey && !firebaseConfig.apiKey.startsWith("YOUR_");
