@@ -7,13 +7,12 @@
 /* Paste the firebaseConfig object Firebase shows you here (see README).
    If left blank, the app runs in LOCAL-ONLY mode and skips cloud sync. */
 const firebaseConfig = {
-  apiKey: "AIzaSyBcN5ojg4bIyrFsgumR4Ttj1ilv__AF2Fw",
-  authDomain: "algodaily-db5ef.firebaseapp.com",
-  projectId: "algodaily-db5ef",
-  storageBucket: "algodaily-db5ef.firebasestorage.app",
-  messagingSenderId: "1002786497468",
-  appId: "1:1002786497468:web:aea3327b49c7f57c4d41b9",
-  measurementId: "G-QZK7X7JJVE"
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
 };
 
 const CLOUD_ENABLED = firebaseConfig.apiKey && !firebaseConfig.apiKey.startsWith("YOUR_");
@@ -241,6 +240,21 @@ function unlockToday() {
 }
 
 /* ──────────── 7. RENDERING ──────────── */
+
+/* Safely render inline markdown emphasis (**bold**) inside use_case prose.
+   Escapes HTML first to prevent injection from curriculum content. */
+function renderInlineEmphasis(text) {
+  if (!text) return "";
+  // Escape HTML
+  const escaped = text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+  // Then convert **bold** -> <strong>bold</strong>
+  return escaped.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+}
+
 function render() {
   // Stats
   document.getElementById("stat-streak").textContent = state.streak;
@@ -379,8 +393,8 @@ function renderLesson(idx, opts = {}) {
     <h3>Visualization</h3>
     <div class="viz-frame" id="viz-host"></div>
 
-    <h3>Where it shows up</h3>
-    <p>${algo.use_case}</p>
+    <h3>Use cases &amp; real-world examples</h3>
+    <div class="use-case-prose">${renderInlineEmphasis(algo.use_case)}</div>
 
     <div class="complete-row" id="complete-row"></div>
   `;
